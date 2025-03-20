@@ -31,7 +31,6 @@ if f.endswith(".blend"):
    <video width="600" controls><source src=""C:\Users\wulutuolaman\Documents\Tencent Files\screenshot\QQ2025318-194742.mp4"" type="video/mp4"></video>
    <video width="600" controls>
   <source src="C:\Users\wulutuolaman\Documents\Tencent Files\screenshot\QQ2025318-194742.mp4" type="video/mp4">
-  您的浏览器不支持 HTML5 视频标签。
 </video>
 
 
