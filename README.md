@@ -23,12 +23,14 @@ if f.endswith(".blend"):
 ```
 3. 增加了默认姿态开关
    如果模型处于默认姿态（模型刚导入时的姿态）可以打开此开关，面部定位将会绑定到头骨的中点  
-   如果模型不处于默认姿态（改变了位置、旋转等属性），需要关闭此开关，面部定位可以精准定位到头骨，但是需要改变旋转属性![image](https://github.com/user-attachments/assets/b0d563a1-1e84-4589-9ca5-60b3d6180f49)  
+   如果模型不处于默认姿态（改变了位置、旋转等属性），需要关闭此开关，面部定位可以精准定位到头骨，但是需要改变旋转属性
+   ![image](https://github.com/user-attachments/assets/b0d563a1-1e84-4589-9ca5-60b3d6180f49)  
 
 5. 增加了重命名资产的功能
    如果在一个工程内连续导入多个预设，可能需要管理工程的资产文件  
-   开启此开关后，导入预设将将把模型相关的所有物体移入新集合（集合名称为处理以后的文件名），与模型相关的图像、材质、节点组、驱动物体等都会加上下划线和集合名称作为后缀，以防止混乱<video width="600" controls>
-  <source src="C:\Users\wulutuolaman\Documents\Tencent Files\screenshot\QQ2025318-194742.mp4" type="video/mp4">
+   开启此开关后，导入预设将将把模型相关的所有物体移入新集合（集合名称为处理以后的文件名），与模型相关的图像、材质、节点组、驱动物体等都会加上下划线和集合名称作为后缀，以防止混乱
+   <video width="600" controls>
+  <source src="video.mp4" type="video/mp4">
 </video>
 
 
