@@ -10,7 +10,8 @@
 1.是否在偏好设置了预设目录  
 2.预设文件是否在预设目录内  
 3.预设文件名称和模型名称是否对的上（例如茜特菈莉的模型错了一个字），需要修改名称以匹配
-![image](https://github.com/user-attachments/assets/2132c250-492a-418c-bace-9ecb1a14020b)
+![image](https://github.com/user-attachments/assets/2132c250-492a-418c-bace-9ecb1a14020b)![image](https://github.com/user-attachments/assets/e2a5b3bf-b2d6-4004-b65a-040168684a23)  
+不排除因为名称相近导入错误的预设（如黑塔和大黑塔），这种情况需要关闭自动查找预设开关，点击手动导入预设文件
 ```python
 if f.endswith(".blend"):
     base_name = f[:-6]  # 去掉.blend后缀
