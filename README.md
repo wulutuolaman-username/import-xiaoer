@@ -19,7 +19,7 @@ if f.endswith(".blend"):
     file_name = file_name.replace("预设", "")  # 去除文件名"预设"字样
     if file_name in obj_name :  # 如果模型名称包含了处理以后的文件名
         return os.path.join(root, f), file_name
-```python
+```
 3. 增加了默认姿态开关，如果模型处于默认姿态（模型刚导入时的姿态）可以打开此开关，面部定位将会绑定到头骨的中点
 如果模型不处于默认姿态（改变了位置、旋转等属性），需要关闭此开关，面部定位可以精准定位到头骨，但是需要改变旋转属性![Uploading image.png…]()
 
