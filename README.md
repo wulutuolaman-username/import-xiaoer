@@ -27,7 +27,12 @@ if f.endswith(".blend"):
 
 5. 增加了重命名资产的功能
    如果在一个工程内连续导入多个预设，可能需要管理工程的资产文件  
-   开启此开关后，导入预设将将把模型相关的所有物体移入新集合（集合名称为处理以后的文件名），与模型相关的图像、材质、节点组、驱动物体等都会加上下划线和集合名称作为后缀，以防止混乱https://github.com/user-attachments/assets/dc8e3e2d-3d72-49be-bfa2-bf4c4b48f0b8
+   开启此开关后，导入预设将将把模型相关的所有物体移入新集合（集合名称为处理以后的文件名），与模型相关的图像、材质、节点组、驱动物体等都会加上下划线和集合名称作为后缀，以防止混乱<video width="600" controls>
+  <source src=""C:\Users\wulutuolaman\Documents\Tencent Files\screenshot\QQ2025318-194742.mp4"" type="video/mp4">
+  您的浏览器不支持 HTML5 视频标签。
+</video>
+
+   https://github.com/user-attachments/assets/dc8e3e2d-3d72-49be-bfa2-bf4c4b48f0b8
 
 
 
