@@ -1,4 +1,4 @@
-### 基于[峰峰居士](https://space.bilibili.com/373134990?spm_id_from=333.337.0.0)的[原版代码](https://www.bilibili.com/video/BV18u4y1K7EM)
+![image](https://github.com/user-attachments/assets/68b34ed4-0736-4a91-86f5-0cce6c0c525b)![image](https://github.com/user-attachments/assets/39e2b158-ffca-4081-bccb-ce9a9ec62d96)### 基于[峰峰居士](https://space.bilibili.com/373134990?spm_id_from=333.337.0.0)的[原版代码](https://www.bilibili.com/video/BV18u4y1K7EM)
 ### 加入[芙生一梦](https://space.bilibili.com/449654059?spm_id_from=333.337.0.0)的版本检查逻辑
 ### 参考[异次元学者](https://space.bilibili.com/181717176)的[Blender插件开发教程](https://space.bilibili.com/181717176/lists/3130635?type=season)
 ### 和[DeepSeek](https://www.deepseek.com/)大战三百回合完成开发
@@ -20,6 +20,9 @@ if f.endswith(".blend"):
     if file_name in obj_name :  # 如果模型名称包含了处理以后的文件名
         return os.path.join(root, f), file_name
 ```
-3. 增加了默认姿态开关，如果模型处于默认姿态（模型刚导入时的姿态）可以打开此开关，面部定位将会绑定到头骨的中点
-如果模型不处于默认姿态（改变了位置、旋转等属性），需要关闭此开关，面部定位可以精准定位到头骨，但是需要改变旋转属性![Uploading image.png…]()
+3. 增加了默认姿态开关，如果模型处于默认姿态（模型刚导入时的姿态）可以打开此开关，面部定位将会绑定到头骨的中点  
+如果模型不处于默认姿态（改变了位置、旋转等属性），需要关闭此开关，面部定位可以精准定位到头骨，但是需要改变旋转属性![image](https://github.com/user-attachments/assets/b0d563a1-1e84-4589-9ca5-60b3d6180f49)  
+
+
+
 
