@@ -11,7 +11,7 @@
 1.是否在偏好设置了预设目录  
 2.预设文件是否在预设目录内  
 3.预设文件名称和模型名称是否对的上（例如茜特菈莉的模型错了一个字），需要修改名称以匹配
-![image](https://github.com/user-attachments/assets/2132c250-492a-418c-bace-9ecb1a14020b)![image](https://github.com/user-attachments/assets/e2a5b3bf-b2d6-4004-b65a-040168684a23)  
+![image](https://github.com/user-attachments/assets/2132c250-492a-418c-bace-9ecb1a14020b)![image](https://github.com/user-attachments/assets/0172d716-3f64-44d5-abc5-180443c1cd21)
 不排除因为名称相近导入错误的预设（如黑塔和大黑塔），这种情况需要关闭自动查找预设开关，点击手动导入预设文件
 ```python
 if f.endswith(".blend"):
@@ -30,7 +30,7 @@ if f.endswith(".blend"):
    如果在一个工程内连续导入多个预设，可能需要管理工程的资产文件  
    开启此开关后，导入预设将将把模型相关的所有物体移入新集合（集合名称为处理以后的文件名），与模型相关的图像、材质、节点组、驱动物体等都会添加下划线和集合名称作为后缀，以防止混乱
    <video width="600" controls>
-  <source src="video.mp4" type="video/mp4">
+  <source src="C:\Users\wulutuolaman\Documents\Tencent Files\screenshot\QQ2025318-194742.mp4" type="video/mp4">
 </video>
 
 
