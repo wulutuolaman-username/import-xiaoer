@@ -375,8 +375,10 @@ class ImportMatPresets(bpy.types.Operator):
                 return {'FINISHED'}
             else:
                 self.report({'WARNING'}, f"预设目录不存在")
+                return {'CANCELLED'}  # 确保返回有效结果
         else:
             self.report({'WARNING'}, f"未设置预设目录")
+            return {'CANCELLED'}  # 确保返回有效结果
 
 class ImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
     bl_idname = "import_test.import_mat_presets_filebrowser"
@@ -499,6 +501,7 @@ class ExportMatPresets(bpy.types.Operator,ExportHelper):
             return super().invoke(context, event)
         else:
             self.report({'WARNING'}, f"未设置预设目录")
+            return {'CANCELLED'}  # 确保返回有效结果
 
     def generate_filename(self, context):
         """生成默认文件名逻辑"""
@@ -992,3 +995,5 @@ if __name__ == "__main__":
 # while xiao_er not in my_big_bed
 #   bpy.context.scene.collection.children.link(xiao_er)
 # love_with(xiao_er)
+# love_with(xiao_er).again
+# love_with(xiao_er).again_and_again

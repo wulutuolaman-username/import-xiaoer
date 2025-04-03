@@ -83,6 +83,10 @@ def _make_workspace_path(addon_dir):
 
 def _make_workspace(addon_dir):
     dir_path = _make_workspace_path(addon_dir)
+    # 如果目录已存在，先删除它
+    if os.path.exists(dir_path):
+        shutil.rmtree(dir_path)
+    # 创建新目录
     os.mkdir(dir_path)
 
 
@@ -111,14 +115,21 @@ def _replace_addon(addon_dir, info, current_addon_path, offset_path=""):
     if ext == ".zip":
         with zipfile.ZipFile(tmp_addon_path) as zf:
             zf.extractall(workspace_path)
-        if offset_path != "":
-            src = workspace_path + get_separator() + offset_path
-            dst = addon_dir
-            shutil.move(src, dst)
+        if offset_path:  # 插件文件夹名称
+            src = os.path.join(workspace_path, offset_path)
+            dst = os.path.join(addon_dir, offset_path)  # addon_dir输入的是blender插件文件夹目录\scripts\addons，不是插件文件的目录
+            if os.path.exists(src):
+                # 确保目标目录存在
+                os.makedirs(dst, exist_ok=True)
+                # 移动所有文件到Blender插件目录
+                for item in os.listdir(src):
+                    shutil.move(os.path.join(src, item), dst)
+            else:
+                raise RuntimeError(f"解压后的插件路径不存在: {src}")
     elif ext == ".py":
         shutil.move(tmp_addon_path, addon_dir)
     else:
-        raise RuntimeError("Unsupported file extension. (ext: {})".format(ext))
+        raise RuntimeError(f"不支持的文件类型: {ext}")
 
 
 def _get_all_releases_data(owner, repository):
@@ -315,6 +326,10 @@ class AddonUpdaterManager:
             raise RuntimeError("Not found any update candidates")
 
         try:
+            # 确保工作空间目录是干净的
+            workspace_path = _make_workspace_path(self.__config.addon_directory)
+            if os.path.exists(workspace_path):
+                shutil.rmtree(workspace_path)
             # create workspace
             _make_workspace(self.__config.addon_directory)
             # download add-on
@@ -423,7 +438,7 @@ def register_updater(bl_info, init_py_file):
     config.addon_directory = os.path.dirname(config.current_addon_path)
     config.min_release_version = (1, 0, 0)
     config.max_release_version = (2, 0, 0)
-    config.default_target_addon_path = ""
+    config.default_target_addon_path = "导入小二"  # 解压后的插件根目录名称
     config.target_addon_path = {}
     updater = AddonUpdaterManager.get_instance()
     updater.init(bl_info, config)
