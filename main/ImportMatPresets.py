@@ -51,7 +51,8 @@ def chaofei_xiaoer(prefs,model,file_path,file_name,self):
             else:
                 if child_1.name[-3:].isdigit():  # 如果有副本后缀
                     child_1.name = child_1.name[:-4]  # 剪去后缀
-                child_1.name = f"{child_1.name}_{file_name}"  # 祖父级空物体的子级物体重命名
+                if model.name.replace("_mesh","") not in child_1.name:
+                    child_1.name = f"{child_1.name}_{file_name}"  # 祖父级空物体的子级物体重命名
             for child_2 in child_1.children:
                 for coll in child_2.users_collection:
                     if child_2.name[-3:].isdigit():  # 如果有副本后缀
@@ -59,7 +60,8 @@ def chaofei_xiaoer(prefs,model,file_path,file_name,self):
                         child_2.name = f"{child_2.name}_{file_name}"  # 祖父级空物体的孙级物体重命名
                     coll.objects.unlink(child_2)  # 祖父级空物体的孙级全部移出旧集合
                 new_collection.objects.link(child_2)  # 祖父级空物体的孙级全部移入新集合
-                child_2.name = f"{child_2.name}_{file_name}"  # 祖父级空物体的孙级物体重命名
+                if child_2 is not model:
+                    child_2.name = f"{child_2.name}_{file_name}"  # 祖父级空物体的孙级物体重命名
 
     # 追加物体移入选中网格的集合
     if model.users_collection:  # 检查选中模型是否在集合中
