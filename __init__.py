@@ -454,19 +454,20 @@ class ExecuteTemplate(bpy.types.Operator):
         # self.report({"INFO"}, f"再次检查偏好路径：" + str(file_path))
         image_path = None  # 初始化
         prefs = context.preferences.addons[__name__].preferences
-        if prefs.search_image: # 如果开启了自动搜索贴图文件夹
-            if not prefs.texture_path and not os.path.exists(prefs.texture_path):
-                self.report({"WARNING"}, f"未设置贴图路径或贴图路径不存在")
-                return None
-            result = find_texture(prefs, model)
-            if result:
-                image_path, dir_name = result
-                self.report({"INFO"}, "搜索到贴图文件夹名称："+str(dir_name))
-            else:
-                self.report({"WARNING"}, f"未搜索到{model.name}贴图")
-                return {'CANCELLED'}  # 确保返回有效结果
-        else:  # 如果没有开启搜索贴图路径，那就是导入偏好路径下的贴图
-            image_path = prefs.texture_path
+        if prefs.import_image:
+            if prefs.search_image: # 如果开启了自动搜索贴图文件夹
+                if not prefs.texture_path and not os.path.exists(prefs.texture_path):
+                    self.report({"WARNING"}, f"未设置贴图路径或贴图路径不存在")
+                    return None
+                result = find_texture(prefs, model)
+                if result:
+                    image_path, dir_name = result
+                    self.report({"INFO"}, "搜索到贴图文件夹名称："+str(dir_name))
+                else:
+                    self.report({"WARNING"}, f"未搜索到{model.name}贴图")
+                    return {'CANCELLED'}  # 确保返回有效结果
+            else:  # 如果没有开启搜索贴图路径，那就是导入偏好路径下的贴图
+                image_path = prefs.texture_path
         if file_path:
             ganfan_xiaoer(self, prefs, model, file_path, image_path)
         return {'FINISHED'}

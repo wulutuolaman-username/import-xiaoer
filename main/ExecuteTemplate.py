@@ -28,7 +28,9 @@ def ganfan_xiaoer(self, prefs, model, file_path, image_path):
     game = active_item.name  # 获取选中游戏名称
 
     # 计算贴图哈希和导入贴图，鸣潮可根据名称直接匹配无需哈希
-    if prefs.import_image:  # 如果开启了自动匹配贴图
+    diffuse_images = None
+    alpha_images = None
+    if prefs.import_image:  # 如果开启了导入贴图
         diffuse_images,alpha_images = import_and_match(self, prefs, image_path)
 
     # 材质按名称分组，不一定分对
