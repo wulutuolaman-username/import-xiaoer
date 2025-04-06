@@ -2,7 +2,7 @@ bl_info = {
     "name": "导入小二",
     "description": "",
     "author": "五路拖拉慢",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
@@ -934,6 +934,19 @@ def register():
 
     _whl_path = os.path.join(os.path.dirname(__file__), "wheels", "ImageHash-4.3.2-py2.py3-none-any.whl")
     subprocess.run([sys.executable, "-m", "pip", "install", _whl_path])
+
+    python_exe = sys.executable
+    try:
+        # 安装/升级Pillow
+        subprocess.check_call([python_exe, "-m", "pip", "install", "--upgrade", "pillow"])
+        # 验证安装
+        try:
+            from PIL import Image
+            print(f"🟢 Pillow版本: {Image.__version__}")
+        except ImportError:
+            raise Exception("Pillow安装成功但无法导入，请关闭blender，删除缓存文件后重新启动")
+    except Exception:
+        raise Exception("pillow安装失败")
 
 def unregister():
 
