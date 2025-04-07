@@ -1,11 +1,15 @@
 import bpy
-from PIL import Image
 import numpy as np
 
 # 全局导入 imagehash
 global imagehash
 try:
     import imagehash
+except ImportError:
+    pass
+
+try:
+    from PIL import Image
 except ImportError:
     pass
 
