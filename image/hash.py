@@ -8,6 +8,7 @@ try:
 except ImportError:
     pass
 
+global Image
 try:
     from PIL import Image
 except ImportError:
