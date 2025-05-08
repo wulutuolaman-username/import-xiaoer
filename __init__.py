@@ -2,7 +2,7 @@ bl_info = {
     "name": "导入小二",
     "description": "",
     "author": "五路拖拉慢",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
@@ -26,8 +26,8 @@ from .main.ImportMatPresets import chaofei_xiaoer
 from .main.ExecuteTemplate import ganfan_xiaoer
 from .main.ExportMatPresets import toutou_xiaoer
 from .general.clean import clean_mmd_tools_rigid_material, clean_mmd_tools_node_group
-from .updater import AddonUpdaterConfig, UpdateCandidateInfo, AddonUpdaterManager, CheckAddonUpdate, UpdateAddon
-from .updater import register_updater
+from .Xiaoer_updater import AddonUpdaterConfig, UpdateCandidateInfo, AddonUpdaterManager, CheckAddonUpdate, UpdateAddon
+from .Xiaoer_updater import register_updater
 
 # 操作符基类
 class SetTemplatePathBaseOperator(bpy.types.Operator, ImportHelper):
@@ -263,6 +263,22 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
                     text=bpy.app.translations.pgettext_iface("安装最新版本({})").format(updater.latest_version()),
                     icon='TRIA_DOWN_BAR'
                 ).branch_name = updater.latest_version()
+
+                # 1.02更新增加版本更新说明
+                latest_version = updater.latest_version()
+                latest_body = ""
+                for candidate in updater._AddonUpdaterManager__update_candidate:
+                    if candidate.name == latest_version and candidate.group == 'RELEASE':
+                        latest_body = candidate.body
+                        break
+
+                box = update_col.box()
+                box.label(text="更新说明：", icon='TEXT')
+                lines = latest_body.split('\n')
+                for line in lines:
+                    if line.strip():
+                        box.label(text=line)
+
             else:
                 col.enabled = False
                 col.operator(
@@ -577,31 +593,6 @@ class XiaoerAplayboxOpenWebsite(OpenWebsite):
     bl_label = ""
     bl_description = "点击前往小二模之屋主页获取预设"
     url: bpy.props.StringProperty(default="https://www.aplaybox.com/u/872092888")
-class FengfengBilibiliOpenWebsite(OpenWebsite):
-    bl_idname = "fengfeng.open_website"
-    bl_label = ""
-    bl_description = "峰峰居士主页"
-    url: bpy.props.StringProperty(default="https://space.bilibili.com/373134990?spm_id_from=333.337.0.0")
-class FushengBilibiliOpenWebsite(OpenWebsite):
-    bl_idname = "fusheng.open_website"
-    bl_label = ""
-    bl_description = "芙生一梦主页"
-    url: bpy.props.StringProperty(default="https://space.bilibili.com/449654059?spm_id_from=333.337.0.0")
-class ChatGPTOpenWebsite(OpenWebsite):
-    bl_idname = "chatgpt.open_website"
-    bl_label = ""
-    bl_description = "chatgpt.com"
-    url: bpy.props.StringProperty(default="https://chatgpt.com/")
-class DeepseekOpenWebsite(OpenWebsite):
-    bl_idname = "deepseek.open_website"
-    bl_label = ""
-    bl_description = "deepseek.com"
-    url: bpy.props.StringProperty(default="https://chat.deepseek.com/")
-class WuluBilibiliOpenWebsite(OpenWebsite):
-    bl_idname = "wulu.open_website"
-    bl_label = ""
-    bl_description = "五路拖拉慢主页"
-    url: bpy.props.StringProperty(default="https://space.bilibili.com/230130803?spm_id_from=333.1007.0.0")
 
 class XiaoerUI(bpy.types.Panel):
     bl_category = "XiaoerTools"  # 侧边栏标签
@@ -783,53 +774,6 @@ class ExecuteTemplateUI(bpy.types.Panel):
         row.scale_y = 2
         row.operator("export_test.export_mat_presets", text="导出预设", icon='EXPORT')
 
-class DeveloperUI(bpy.types.Panel):
-    bl_category = "XiaoerTools"  # 侧边栏标签
-    bl_label = "插件开发"  # 工具卷展栏标签
-    bl_idname = "OBJECT_PT_import4"  # 工具ID
-    bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
-    bl_region_type = 'UI'  # 区域类型:右边侧栏
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row(align = True)
-        # row = layout.scale_x = 2
-        # 添加按钮
-        row.operator(
-            "fengfeng.open_website",  # 操作符 ID
-            # text="",
-            icon_value=pcoll["峰峰居士"].icon_id,   # 按钮图标
-            emboss=False  # 隐藏按钮背景
-        )
-        # 添加按钮
-        row.operator(
-            "fusheng.open_website",  # 操作符 ID
-            # text="",
-            icon_value=pcoll["芙生一梦"].icon_id,   # 按钮图标
-            emboss=False  # 隐藏按钮背景
-        )
-        # 添加按钮
-        row.operator(
-            "chatgpt.open_website",  # 操作符 ID
-            # text="",
-            icon_value=pcoll["ChatGPT"].icon_id,  # 按钮图标
-            emboss=False  # 隐藏按钮背景
-        )
-        # 添加按钮
-        row.operator(
-            "deepseek.open_website",  # 操作符 ID
-            # text="",
-            icon_value=pcoll["DeepSeek"].icon_id,   # 按钮图标
-            emboss=False  # 隐藏按钮背景
-        )
-        # 添加按钮
-        row.operator(
-            "wulu.open_website",  # 操作符 ID
-            # text="",
-            icon_value=pcoll["五路拖拉慢"].icon_id,   # 按钮图标
-            emboss=False  # 隐藏按钮背景
-        )
-
 classes = (
             # SetTemplatePathBaseOperator,
             SetUserPathOperator,
@@ -842,7 +786,6 @@ classes = (
             SetHonkaiStarRailPathOperator,
             SetZenlessZoneZeroPathOperator,
             SetWutheringwavesPathOperator,
-
 
             GameTemplateItem,  #  必须在偏好前定义
             GAME_UL_TemplateList,
@@ -871,31 +814,18 @@ classes = (
             XiaoerBilibiliOpenWebsite,
             XiaoerAfdianOpenWebsite,
             XiaoerAplayboxOpenWebsite,
-            FengfengBilibiliOpenWebsite,
-            FushengBilibiliOpenWebsite,
-            ChatGPTOpenWebsite,
-            DeepseekOpenWebsite,
-            WuluBilibiliOpenWebsite,
 
             XiaoerUI,
             MMDtoolsUI,
             ImportMatPresetsUI,
             GetMatPresetsUI,
             ExecuteTemplateUI,
-            DeveloperUI,
 )
 
 icon_map = [  # 图标文件名，引用图标，模板偏好路径
     ('xiaoer.jpg', '小二', ''),
     ('afdian.png', '爱发电', ''),
     ('aplaybox.png', '模之屋', ''),
-    ('fengfeng.jpg', '峰峰居士', ''),
-    ('fusheng.jpg', '芙生一梦', ''),
-    ('ChatGPT.jpeg', 'ChatGPT', ''),
-    ('deepseek.png', 'DeepSeek', ''),
-    ('wulu.png', '五路拖拉慢', ''),
-    # ('Honkai3Part1.png', '崩坏三第一部', 'honkai3_part1'),
-    # ('Honkai3Part2.jpg', '崩坏三第二部', 'honkai3_part2'),
     ('Honkai3Part1.png', '崩坏三', 'honkai3'),
     ('Genshin.png', '原神','genshin'),
     ('HonkaiStarRail.png', '崩坏：星穹铁道', 'honkai_star_rail'),
@@ -935,7 +865,7 @@ def register():
     _whl_path = os.path.join(os.path.dirname(__file__), "wheels", "ImageHash-4.3.2-py2.py3-none-any.whl")
     subprocess.run([sys.executable, "-m", "pip", "install", _whl_path])
 
-    python_exe = sys.executable
+    python_exe = sys.executable  # 1.01更新：注册安装/升级Pillow
     try:
         # 安装/升级Pillow
         subprocess.check_call([python_exe, "-m", "pip", "install", "--upgrade", "pillow"])

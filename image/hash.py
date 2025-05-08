@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-global Image
+global Image  #  1.01更新：不再直接导入PIL
 try:
     from PIL import Image
 except ImportError:

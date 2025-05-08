@@ -1,25 +1,25 @@
 # 材质按名称分组，不一定分对
 def material_sort(model):
-
+    # 1.02更新：增加"袖"，英文全部小写
     eye_mouth_name = ["眉","mei","睫","jie","二重","bai","眼","目","瞳","eye","Eye","hi","yinying",
                       "口","嘴","唇","mouth","kou","lip","牙","齿","齒","teeth","舌","tongue","she",
                       "痣"]
     eye_mouth_materials = []
 
-    emotion_name = ["表情","biaoq","bq","emo","heart","星","Star","❤","Cheek","nose","脸红","照れ","> <"]
+    emotion_name = ["表情","biaoq","bq","emo","heart","星","star","❤","cheek","nose","脸红","照れ","> <"]
     emotion_materials = []
 
-    hair_name = ["发","髪","髮","辫","hair","Hair","Bang","刘海","后脑勺","马尾","馬尾"]
+    hair_name = ["发","髪","髮","辫","hair","bang","刘海","后脑勺","马尾","馬尾"]
     hair_materials = []
 
-    face_name = ["脸","颜","顏","面","face","Face"]
+    face_name = ["脸","颜","顏","面","face"]
     face_material = next((material for material in model.data.materials if any(keyword in material.name for keyword in face_name)), None)
     face_materials = []  # 考虑到有些模型将脸分成多个材质
-    skin_name = ["首","脖","kubi","皮肤","肌","skin","Skin","體","ear","hou"]
+    skin_name = ["首","脖","kubi","皮肤","肌","skin","體","ear","hou"]
     skin_materials = []  # 在几何节点时可将脸材质并入皮肤材质同时输入；在着色节点时，处理脸材质后将其从皮肤材质中移除，然后处理皮肤材质
 
     # 反向过滤
-    clothes_name =["面具","面罩","面襯","神之眼","眼罩","眼镜","饰","飾","绳","繩","纱","紗","带","帶"]
+    clothes_name =["面具","面罩","面襯","神之眼","眼罩","眼镜","饰","飾","绳","繩","纱","紗","带","帶","袖"]
     clothes_materials = []
 
     for material in model.data.materials:
