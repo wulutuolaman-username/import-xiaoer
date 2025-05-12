@@ -1,24 +1,26 @@
 __init__
 class SetTemplatePathBaseOperator
+
 class XiaoerPreferences
-	game_path: StringProperty
+	模板路径: StringProperty
 	def draw(self, context):
-		Set_Template_Path(game_path,game,operator)
-icon_map
+		设置模板路径(游戏,操作)
 classes
 
-\image\asset_image
-\image\import_and_match  # 筛选基础贴图
+\图像\筛选图像
 
-\material\material_sort
+\材质\材质分类
 
-\SHADER\xiaoer_shader
-	if not diffuse_image:
+\着色\小二着色
+	if not 基础贴图:
 
-\SHADER\texture\AO
-\SHADER\texture\Lightmap
-\SHADER\texture\Normalmap
-\SHADER\texture\Shadow_Ramp
+\着色\基础贴图
+	筛选基础贴图
 
-\SHADER\texture_node_group\Lightmap_node_group
-\SHADER\texture_node_group\Shadow_Ramp_node_group
+\着色\贴图\AO贴图
+\着色\贴图\光照贴图
+\着色\贴图\法线贴图
+\着色\贴图\Ramp贴图
+
+\着色\贴图节点组\光照贴图节点组
+\着色\贴图节点组\Ramp贴图节点组
