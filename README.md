@@ -1,3 +1,5 @@
+# 1.0.3以前的版本升级至1.0.3+不会继承偏好和面板设置
+
 ### 引用[mmd_tools](https://github.com/MMD-Blender/blender_mmd_tools)部分模块
 ### 和[ChatGPT](https://chatgpt.com/)、[DeepSeek](https://chat.deepseek.com/)大战三百回合完成开发
 ---
