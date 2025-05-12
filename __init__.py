@@ -1,8 +1,10 @@
+# coding: utf-8
+
 bl_info = {
     "name": "导入小二",
-    "description": "",
+    "description": "基于小二节点，用于特定游戏模型预设的Blender插件",
     "author": "五路拖拉慢",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
@@ -21,14 +23,15 @@ from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.utils import previews
 from mmd_tools.core import model
 
-from .general.find import find_preset, find_texture
-from .main.ImportMatPresets import chaofei_xiaoer
-from .main.ExecuteTemplate import ganfan_xiaoer
-from .main.ExportMatPresets import toutou_xiaoer
-from .general.clean import clean_mmd_tools_rigid_material, clean_mmd_tools_node_group
-from .Xiaoer_updater import AddonUpdaterConfig, UpdateCandidateInfo, AddonUpdaterManager, CheckAddonUpdate, UpdateAddon
-from .Xiaoer_updater import register_updater
+from .通用.查找 import 查找预设, 查找贴图
+from .核心.导入模型预设 import 炒飞小二
+from .核心.加载预设模板 import 干翻小二
+from .核心.导出模型预设 import 透透小二
+from .通用.清理 import 清理MMD刚体材质
+from .xiaoer_updater import AddonUpdaterConfig, UpdateCandidateInfo, AddonUpdaterManager, CheckAddonUpdate, UpdateAddon
+from .xiaoer_updater import register_updater
 
+# Python（包括 Blender 的 API）不允许类名使用中文或非 ASCII 字符作为标识符
 # 操作符基类
 class SetTemplatePathBaseOperator(bpy.types.Operator, ImportHelper):
     bl_idname = "xiaoer.set_path"
@@ -40,18 +43,18 @@ class SetTemplatePathBaseOperator(bpy.types.Operator, ImportHelper):
         options={'HIDDEN'},
         maxlen=255
     )
-    target_property: StringProperty()
+    属性: StringProperty()
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
-        setattr(prefs, self.target_property, self.filepath)
+        偏好 = context.preferences.addons[__name__].preferences
+        setattr(偏好, self.属性, self.filepath)
         return {'FINISHED'}
 # 具体操作符类
 class SetUserPathOperator(SetTemplatePathBaseOperator):
     """设置用户路径"""
     bl_idname = "xiaoer.set_user_path"  # 操作符的唯一标识符
     bl_label = "选择预设目录"
-    target_property = "user_path"
+    属性 = "预设目录"
 class SetImagePathOperator(bpy.types.Operator, ImportHelper):
     """设置贴图路径"""
     bl_idname = "xiaoer.set_image_path"  # 操作符的唯一标识符
@@ -64,52 +67,40 @@ class SetImagePathOperator(bpy.types.Operator, ImportHelper):
         maxlen=255
     )
     # 目标属性名称
-    target_property: bpy.props.StringProperty()
+    属性: bpy.props.StringProperty()
 
     def execute(self, context):
         # 获取偏好设置对象
-        prefs = context.preferences.addons[__name__].preferences
+        偏好 = context.preferences.addons[__name__].preferences
 
         # 将选择的路径保存到目标属性
-        setattr(prefs, self.target_property, self.filepath)
+        setattr(偏好, self.属性, self.filepath)
         return {'FINISHED'}
 
-# class SetHonkai3Part1PathOperator(SetTemplatePathBaseOperator):
-#     bl_idname = "xiaoer.set_honkai3_part1_path"
-#     bl_label = "选择崩坏三第一部模板文件"
-#     target_property = "honkai3_part1_path"
-# class SetHonkai3Part2PathOperator(SetTemplatePathBaseOperator):
-#     bl_idname = "xiaoer.set_honkai3_part2_path"
-#     bl_label = "选择崩坏三第二部模板文件"
-#     target_property = "honkai3_part2_path"
 class SetHonkai3PathOperator(SetTemplatePathBaseOperator):
     bl_idname = "xiaoer.set_honkai3_path"
     bl_label = "选择崩坏三模板文件"
-    target_property = "honkai3_path"
+    属性 = "honkai3_path"
 class SetGenshinPathOperator(SetTemplatePathBaseOperator):
     bl_idname = "xiaoer.set_genshin_path"
     bl_label = "选择原神模板文件"
-    target_property = "genshin_path"
+    属性 = "genshin_path"
 class SetHonkaiStarRailPathOperator(SetTemplatePathBaseOperator):
     bl_idname = "xiaoer.set_honkai_star_rail_path"
     bl_label = "选择崩坏：星穹铁道模板文件"
-    target_property = "honkai_star_rail_path"
+    属性 = "honkai_star_rail_path"
 class SetZenlessZoneZeroPathOperator(SetTemplatePathBaseOperator):
     bl_idname = "xiaoer.set_zenless_zone_zero_path"
     bl_label = "选择绝区零模板文件"
-    target_property = "zenless_zone_zero_path"
+    属性 = "zenless_zone_zero_path"
 class SetWutheringwavesPathOperator(SetTemplatePathBaseOperator):
     bl_idname = "xiaoer.set_wuthering_waves_path"
     bl_label = "选择鸣潮模板文件"
-    target_property = "wuthering_waves_path"
+    属性 = "wuthering_waves_path"
 
 class GameTemplateItem(bpy.types.PropertyGroup):  # 必须在偏好前定义
     """存储单个游戏模板数据"""
-    identifier: StringProperty(
-        name="",
-        description="匹配路径"
-    )
-    name: StringProperty(
+    名称: StringProperty(
         name="",
         description="游戏名称"
     )
@@ -119,12 +110,12 @@ class GAME_UL_TemplateList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         # 紧凑模式布局
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.alignment = 'LEFT'
+            行 = layout.row(align=True)
+            行.alignment = 'LEFT'
 
-            # 显示图标（从gcoll获取）
-            icon_id = pcoll[item.name].icon_id
-            row.label(text=item.name, icon_value=icon_id)
+            # 显示图标
+            icon_id = 图标预览[item.名称].icon_id
+            行.label(text=item.名称, icon_value=icon_id)
 
 # 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/preferences.py
 def _get_update_candidate_branches(_, __):
@@ -146,37 +137,55 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
         items=_get_update_candidate_branches
     )
 
-    auto_find: BoolProperty(
+    自动查找预设: BoolProperty(
         name="自动查找预设",
         description="先在偏好设置中设置包含所有预设文件的目录，启用自动查找预设文件",
         default=True
     )
 
-    user_path: StringProperty(
+    预设目录: StringProperty(
         name="预设目录",
         description="设置预设文件的搜索根目录",
         subtype='DIR_PATH'
     )
 
-    import_image: BoolProperty(
+    默认姿态: BoolProperty(
+        name="默认姿态",
+        description="若当前模型是默认的姿态，开启则继承面部定位属性；关闭后可以精准定位，但是调整变换属性",
+        default=True
+    )
+
+    重命名资产: BoolProperty(
+        name="连续导入（重命名资产）",
+        description="开启后可以对材质、节点组、贴图、驱动物体等对象的名称添加角色名重命名,以防止混淆，并放在单独的集合",
+        default=False
+    )
+
+    开启制作预设: BoolProperty(
+        name="开启制作预设",
+        description="开启后激活制作预设面板",
+        default=True
+    )  # 1.0.3新增
+
+    导入贴图: BoolProperty(
         name="导入贴图",
         description="先在偏好设置中设置包含贴图文件的目录，开启后可以导入贴图",
         default=True
     )
 
-    auto_match_image: BoolProperty(
-        name="自动查找匹配基础贴图",
+    匹配基础贴图: BoolProperty(
+        name="匹配基础贴图",
         description="图像感知哈希，先在偏好设置中设置包含所有贴图文件的目录，启用自动查找匹配基础贴图",
         default=True
     )
 
-    search_image: BoolProperty(
+    搜索贴图文件夹: BoolProperty(
         name="搜索贴图文件夹",
-        description="先在偏好设置中设置包含所有贴图文件的目录，开启后可以根据模型名称搜索对应的贴图所在文件夹，关闭后需要直接指定模型贴图所在文件夹",
+        description="先在偏好设置中设置包含所有贴图文件的目录，开启后可以根据模型名称和贴图文件夹名称，搜索对应的贴图所在文件夹，关闭后需要直接指定模型贴图所在文件夹",
         default=True
     )
 
-    Hamming_distance: bpy.props.IntProperty(
+    汉明距离: bpy.props.IntProperty(
         name="",
         default=7,
         description="汉明距离越小匹配越严格",
@@ -184,42 +193,28 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
         max = 15,  # 最大值
     )
 
-    texture_path: StringProperty(
+    贴图目录: StringProperty(
         name="贴图目录",
         description="设置贴图文件的搜索根目录",
         subtype='DIR_PATH'
     )
 
-    default_pose: BoolProperty(
-        name="默认姿态",
-        description="若当前模型是默认的姿态，开启则继承面部定位属性；关闭后可以精准定位，但是调整变换属性",
-        default=True
-    )
-
-    continuous_importer: BoolProperty(
-        name="连续导入（重命名资产）",
-        description="开启后可以对材质、节点组、贴图、驱动物体等对象的名称添加角色名重命名,以防止混淆，并放在单独的集合",
-        default=False
-    )
-
-    game_templates: bpy.props.CollectionProperty(
+    游戏列表: bpy.props.CollectionProperty(
         type=GameTemplateItem,
         name="游戏列表"
     )
 
-    active_template_index: bpy.props.IntProperty(
+    当前列表选项索引: bpy.props.IntProperty(
         name="",
         default=0
     )
 
-    # 定义每个模板的独立路径属性
-    # honkai3_part1_path: StringProperty(name="崩坏三第一部模板路径", description="设置崩坏三第一部模板文件路径",subtype='FILE_PATH')
-    # honkai3_part2_path: StringProperty(name="崩坏三第二部模板路径", description="设置崩坏三第二部模板文件路径", subtype='FILE_PATH')
-    honkai3_path: StringProperty(name="崩坏三模板路径", description="设置崩坏三模板文件路径",subtype='FILE_PATH')
-    genshin_path: StringProperty(name="原神模板路径", description="设置原神模板文件路径", subtype='FILE_PATH')
-    honkai_star_rail_path: StringProperty(name="崩坏：星穹铁道模板路径", description="设置崩坏：星穹铁道模板文件路径", subtype='FILE_PATH')
-    zenless_zone_zero_path: StringProperty(name="绝区零模板路径", description="设置绝区零模板文件路径", subtype='FILE_PATH')
-    wuthering_waves_path: StringProperty(name="鸣潮模板路径", description="设置鸣潮模板文件路径", subtype='FILE_PATH')
+    # 定义每个模板的独立路径属性 # 不能使用中文冒号：
+    崩坏三模板路径: StringProperty(name="崩坏三模板路径", description="设置崩坏三模板文件路径",subtype='FILE_PATH')
+    原神模板路径: StringProperty(name="原神模板路径", description="设置原神模板文件路径", subtype='FILE_PATH')
+    崩坏星穹铁道模板路径: StringProperty(name="崩坏：星穹铁道模板路径", description="设置崩坏：星穹铁道模板文件路径", subtype='FILE_PATH')
+    绝区零模板路径: StringProperty(name="绝区零模板路径", description="设置绝区零模板文件路径", subtype='FILE_PATH')
+    鸣潮模板路径: StringProperty(name="鸣潮模板路径", description="设置鸣潮模板文件路径", subtype='FILE_PATH')
 
     def draw(self, context):  # 仅在偏好设置显示路径设置
         layout = self.layout
@@ -264,7 +259,7 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
                     icon='TRIA_DOWN_BAR'
                 ).branch_name = updater.latest_version()
 
-                # 1.02更新增加版本更新说明
+                # 1.02增加版本更新说明
                 latest_version = updater.latest_version()
                 latest_body = ""
                 for candidate in updater._AddonUpdaterManager__update_candidate:
@@ -305,35 +300,40 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
             # 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/preferences.py
 
         # layout.label(text="预设目录设置")
-        row = layout.row(align=True)
-        row.prop(self, "user_path", text="预设目录", icon='FILE_FOLDER')
-        row.scale_x = 0.5
-        op = row.operator("xiaoer.set_user_path", text="选择预设目录", icon='FILE_FOLDER')
-        op.target_property = "user_path"  # 将路径属性名传递给操作符
+        行 = layout.row(align=True)
+        行.prop(self, "预设目录", text="预设目录", icon='FILE_FOLDER')
+        行.scale_x = 0.5
+        键 = 行.operator("xiaoer.set_user_path", text="选择预设目录", icon='FILE_FOLDER')
+        键.属性 = "预设目录"  # 将路径属性名传递给操作符
 
-        # layout.label(text="贴图目录设置")
-        row = layout.row(align=True)
-        row.prop(self, "texture_path", text="贴图目录", icon='FILE_IMAGE')
-        row.scale_x = 0.5
-        op = row.operator("xiaoer.set_image_path", text="选择贴图目录", icon='FILE_IMAGE')
-        op.target_property = "texture_path"  # 将路径属性名传递给操作符
+        行 = layout.row(align=True)  # 1.0.3新增
+        行.prop(self, "开启制作预设", text="  开启制作预设面板 需自备贴图和预设模板")
+        行 = layout.row(align=True)
+        行.label(text="已适配公开预设：崩坏三、原神、崩坏：星穹铁道", icon='CHECKMARK')
 
-        # 模板路径设置
-        def Set_Template_Path(path,game,operator):
-            row = layout.row(align=True)  # 关键点：align=True 确保子元素对齐
-            split = row.split(factor=0.1)  # 分割行，左侧占10%宽度
-            split.template_icon(icon_value=pcoll[game].icon_id, scale=2)  # 图标放在左侧
-            split_right = split.column(align=True)  # 右侧子行
-            split_right.prop(bpy.context.preferences.addons[__name__].preferences, path, text=game, icon='BLENDER')
-            op = split_right.operator(operator, icon='BLENDER')
-            op.target_property = path  # 将路径属性名传递给操作符
-        # Set_Template_Path("honkai3_part1_path", "崩坏三第一部", "xiaoer.set_honkai3_part1_path")
-        # Set_Template_Path("honkai3_part2_path", "崩坏三第二部", "xiaoer.set_honkai3_part2_path")
-        Set_Template_Path("honkai3_path", "崩坏三", "xiaoer.set_honkai3_path")
-        Set_Template_Path("genshin_path", "原神", "xiaoer.set_genshin_path")
-        Set_Template_Path("honkai_star_rail_path", "崩坏：星穹铁道", "xiaoer.set_honkai_star_rail_path")
-        Set_Template_Path("zenless_zone_zero_path", "绝区零", "xiaoer.set_zenless_zone_zero_path")
-        Set_Template_Path("wuthering_waves_path", "鸣潮", "xiaoer.set_wuthering_waves_path")
+        if self.开启制作预设:  # 1.0.3新增
+            # layout.label(text="贴图目录设置")
+            行 = layout.row(align=True)
+            行.prop(self, "贴图目录", text="贴图目录", icon='FILE_IMAGE')
+            行.scale_x = 0.5
+            键 = 行.operator("xiaoer.set_image_path", text="选择贴图目录", icon='FILE_IMAGE')
+            键.属性 = "贴图目录"  # 将路径属性名传递给操作符
+
+            # 模板路径设置
+            def 设置模板路径(游戏,操作):
+                行 = layout.row(align=True)  # 关键点：align=True 确保子元素对齐
+                左侧 = 行.split(factor=0.1)  # 分割行，左侧占10%宽度
+                左侧.template_icon(icon_value=图标预览[游戏].icon_id, scale=2)  # 图标放在左侧
+                右侧 = 左侧.column(align=True)  # 右侧子行
+                路径 = f'{游戏.replace("：", "")}模板路径'
+                右侧.prop(bpy.context.preferences.addons[__name__].preferences, 路径, text=游戏, icon='BLENDER')
+                键 = 右侧.operator(操作, icon='BLENDER')
+                键.属性 = 路径  # 将路径属性名传递给操作符
+            设置模板路径("崩坏三", "xiaoer.set_honkai3_path")
+            设置模板路径("原神", "xiaoer.set_genshin_path")
+            设置模板路径("崩坏：星穹铁道", "xiaoer.set_honkai_star_rail_path")
+            设置模板路径("绝区零", "xiaoer.set_zenless_zone_zero_path")
+            设置模板路径("鸣潮", "xiaoer.set_wuthering_waves_path")
 
 # 打开偏好设置
 class OPEN_PREFERENCES_OT_open_addon_prefs(bpy.types.Operator):
@@ -348,8 +348,8 @@ class OPEN_PREFERENCES_OT_open_addon_prefs(bpy.types.Operator):
         # 切换到Add-ons选项卡
         context.preferences.active_section = 'ADDONS'
         # 获取当前插件的显示名称
-        addon_prefs = context.preferences.addons.get(__name__)
-        if addon_prefs:
+        小二插件 = context.preferences.addons.get(__name__)
+        if 小二插件:
             addon_name = bl_info["name"]
             context.window_manager.addon_search = addon_name  # 设置搜索过滤
         else:
@@ -374,20 +374,18 @@ class ImportMatPresets(bpy.types.Operator):
         return context.object is not None and context.object.type == 'MESH'
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
-        if prefs.user_path:
-            if os.path.exists(prefs.user_path):
-                for model in bpy.context.selected_objects:  # 可能选择了多个物体
-                    result = find_preset(prefs, model)  # 读取文件路径和文件名称
-                    if result:
-                        file_path, file_name = result  # 分别赋值文件路径和文件名称
-                        self.report({"INFO"}, "匹配名称："+str(file_name))
-                        chaofei_xiaoer(prefs, model, file_path, file_name, self)
+        偏好 = context.preferences.addons[__name__].preferences
+        if 偏好.预设目录:
+            if os.path.exists(偏好.预设目录):
+                for 模型 in bpy.context.selected_objects:  # 可能选择了多个物体
+                    文件路径, 角色 = 查找预设(偏好, 模型)  # 读取文件路径和文件名称
+                    if 文件路径 and 角色:
+                        self.report({"INFO"}, "匹配名称："+str(角色))
+                        炒飞小二(偏好, 模型, 文件路径, 角色, self)
                     else:
-                        self.report({"WARNING"}, f"未找到{model.name}匹配预设，请在偏好设置预设目录，检查模型名称和预设文件名是否正确对应，或关闭自动查找预设手动导入")
-                if prefs.continuous_importer:  ############### 如果开启了连续导入 ###############
-                    clean_mmd_tools_rigid_material()  # 整理MMD刚体材质
-                    clean_mmd_tools_node_group()  # 整理MMD固有节点组
+                        self.report({"WARNING"}, f"未找到{模型.name}匹配预设，请在偏好设置预设目录，检查模型名称和预设文件名是否正确对应，或关闭自动查找预设手动导入")
+                if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+                    清理MMD刚体材质()  # 整理MMD刚体材质
                 return {'FINISHED'}
             else:
                 self.report({'WARNING'}, f"预设目录不存在")
@@ -412,17 +410,16 @@ class ImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
         return context.object is not None and context.object.type == 'MESH'
 
     def execute(self, context):
-        prefs = context.preferences.addons[__name__].preferences
-        file_path = self.filepath  # 手动选择的文件路径
-        file_name = os.path.splitext(os.path.basename(file_path))[0]  # 获取文件名（去掉路径和扩展名）
-        file_name = file_name.replace("渲染", "")  # 去掉“渲染”字样（如果有）
-        file_name = file_name.replace("预设", "")  # 去掉“预设”字样（如果有）
-        self.report({"INFO"}, f"匹配名称：" + str(file_name))
-        model = bpy.context.object  # 获取当前选中的模型
-        chaofei_xiaoer(prefs, model, file_path, file_name, self)
-        if prefs.continuous_importer:  ############### 如果开启了连续导入 ###############
-            clean_mmd_tools_rigid_material()  # 整理MMD刚体材质
-            clean_mmd_tools_node_group()  # 整理MMD固有节点组
+        偏好 = context.preferences.addons[__name__].preferences
+        文件路径 = self.filepath  # 手动选择的文件路径
+        角色 = os.path.splitext(os.path.basename(文件路径))[0]  # 获取文件名（去掉路径和扩展名）
+        角色 = 角色.replace("渲染", "")  # 去掉“渲染”字样（如果有）
+        角色 = 角色.replace("预设", "")  # 去掉“预设”字样（如果有）
+        self.report({"INFO"}, f"匹配名称：" + str(角色))
+        模型 = bpy.context.object  # 获取当前选中的模型
+        炒飞小二(偏好, 模型, 文件路径, 角色, self)
+        if 偏好.默认姿态:  ############### 如果开启了连续导入 ###############
+            清理MMD刚体材质()  # 整理MMD刚体材质
         return {'FINISHED'}
 
 class ExecuteTemplate(bpy.types.Operator):
@@ -431,61 +428,62 @@ class ExecuteTemplate(bpy.types.Operator):
     bl_label = "加载预设模板"
 
     # 定义两个路径属性
-    template_path: StringProperty(subtype='FILE_PATH')
-    image_path: StringProperty(subtype='FILE_PATH')  # 重命名为image_path
+    模板路径: StringProperty(subtype='FILE_PATH')
+    贴图路径: StringProperty(subtype='FILE_PATH')  # 重命名为image_path
 
     @classmethod
     def poll(self, context):
+
         return context.object is not None and context.object.type == 'MESH'
 
     def invoke(self, context, event):
-        prefs = context.preferences.addons[__name__].preferences
-
-        active_item = prefs.game_templates[prefs.active_template_index]
-        file_path = getattr(prefs, f"{active_item.identifier}_path", None)
-
-        if file_path and os.path.exists(file_path):
-            self.template_path = file_path  # 传递模板路径
-            if prefs.import_image:
-                image_path = prefs.texture_path
-                if image_path and os.path.exists(image_path):
+        偏好 = bpy.context.preferences.addons[__name__].preferences
+        选中项 = 偏好.游戏列表[偏好.当前列表选项索引]
+        偏好名称 = 选中项.名称.replace("：", "")
+        文件路径 = getattr(偏好, f"{偏好名称}模板路径", None)
+        if 文件路径 and os.path.exists(文件路径):
+            self.模板路径 = 文件路径  # 传递模板路径
+            if 偏好.导入贴图:
+                贴图路径 = 偏好.贴图目录
+                if 贴图路径 and os.path.exists(贴图路径):
                     pass
-                elif not image_path:
+                elif not 贴图路径:
                     self.report({"WARNING"}, f"未设置贴图路径")
                     return {'CANCELLED'}  # 确保返回有效结果
-                elif not os.path.exists(image_path):
+                elif not os.path.exists(贴图路径):
                     self.report({"WARNING"}, f"贴图路径不存在")
                     return {'CANCELLED'}  # 确保返回有效结果
             return self.execute(context)
-        elif not file_path:
-            self.report({"WARNING"}, f"未设置{active_item.name}预设模板路径")
+        elif not 文件路径:
+            self.report({"WARNING"}, f"未设置{选中项.名称}预设模板路径")
             return {'CANCELLED'}  # 确保返回有效结果
-        elif not os.path.exists(file_path):
-            self.report({"WARNING"}, f"{active_item.name}预设模板路径不存在")
+        elif not os.path.exists(文件路径):
+            self.report({"WARNING"}, f"{选中项.名称}预设模板路径不存在")
             return {'CANCELLED'}  # 确保返回有效结果
 
     def execute(self, context):
-        model = bpy.context.object
-        file_path = self.template_path
+        偏好 = bpy.context.preferences.addons[__name__].preferences
+        选中项 = 偏好.游戏列表[偏好.当前列表选项索引]
+        游戏 = 选中项.名称
+        模型 = bpy.context.object
+        文件路径 = self.模板路径
         # self.report({"INFO"}, f"再次检查偏好路径：" + str(file_path))
-        image_path = None  # 初始化
-        prefs = context.preferences.addons[__name__].preferences
-        if prefs.import_image:
-            if prefs.search_image: # 如果开启了自动搜索贴图文件夹
-                if not prefs.texture_path and not os.path.exists(prefs.texture_path):
+        贴图路径 = None  # 初始化
+        if 偏好.导入贴图:
+            if 偏好.搜索贴图文件夹: # 如果开启了自动搜索贴图文件夹
+                if not 偏好.贴图目录 and not os.path.exists(偏好.贴图目录):
                     self.report({"WARNING"}, f"未设置贴图路径或贴图路径不存在")
                     return None
-                result = find_texture(prefs, model)
-                if result:
-                    image_path, dir_name = result
-                    self.report({"INFO"}, "搜索到贴图文件夹名称："+str(dir_name))
+                贴图路径, 角色 = 查找贴图(偏好, 模型)
+                if 贴图路径 and 角色:
+                    self.report({"INFO"}, "搜索到贴图文件夹名称："+str(角色))
                 else:
-                    self.report({"WARNING"}, f"未搜索到{model.name}贴图")
+                    self.report({"WARNING"}, f"未搜索到{模型.name}贴图")
                     return {'CANCELLED'}  # 确保返回有效结果
             else:  # 如果没有开启搜索贴图路径，那就是导入偏好路径下的贴图
-                image_path = prefs.texture_path
-        if file_path:
-            ganfan_xiaoer(self, prefs, model, file_path, image_path)
+                贴图路径 = 偏好.贴图目录
+        if 文件路径:
+            干翻小二(self, 偏好, 模型, 游戏, 文件路径, 贴图路径)
         return {'FINISHED'}
 
 class ExportMatPresets(bpy.types.Operator,ExportHelper):
@@ -509,10 +507,10 @@ class ExportMatPresets(bpy.types.Operator,ExportHelper):
     # 动态设置默认路径和文件名
     def invoke(self, context, event):
         # 获取用户预设路径
-        prefs = context.preferences.addons[__name__].preferences
-        if prefs.user_path:
+        偏好 = context.preferences.addons[__name__].preferences
+        if 偏好.预设目录:
             self.filepath = os.path.join(
-                prefs.user_path,  # 从偏好设置获取路径
+                偏好.预设目录,  # 从偏好设置获取路径
                 self.generate_filename(context)  # 自动生成文件名
             )
             return super().invoke(context, event)
@@ -522,45 +520,53 @@ class ExportMatPresets(bpy.types.Operator,ExportHelper):
 
     def generate_filename(self, context):
         """生成默认文件名逻辑"""
-        model = context.object
-        if model:
-            clean_name = model.name.replace("_mesh", "")
-            return f"{clean_name}预设.blend"
+        模型 = context.object
+        if 模型:
+            名称 = 模型.name.replace("_mesh", "")
+            return f"{名称}预设.blend"
         return "untitled.blend"
 
     def execute(self, context):
 
         # 最终保存路径处理
-        save_path = os.path.normpath(self.filepath)
-        save_dir = os.path.dirname(save_path)
+        保存路径 = os.path.normpath(self.filepath)
+        保存信息 = os.path.dirname(保存路径)
 
         # 路径有效性检查
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
+        if not os.path.exists(保存信息):
+            os.makedirs(保存信息)
 
-        if not os.access(save_dir, os.W_OK):
-            self.report({'WARNING'}, f"无写入权限: {save_dir}")
+        if not os.access(保存信息, os.W_OK):
+            self.report({'WARNING'}, f"无写入权限: {保存信息}")
             return {'CANCELLED'}
 
         # try:
         # 执行保存操作
         bpy.ops.wm.save_as_mainfile(
-            filepath=save_path,
+            filepath=保存路径,
             check_existing=True,  # 检查文件存在
             copy=True  # 保持原文件不受影响
         )
-        self.report({'INFO'}, f"导出预设: {save_path}")
-        model = context.object
-        model_name = model.name
-        bpy.ops.wm.open_mainfile(filepath=save_path)
-        model = bpy.data.objects[model_name]
-        model.select_set(True)
-        toutou_xiaoer(self, model)
+        self.report({'INFO'}, f"导出预设: {保存路径}")
+        模型 = context.object
+        模型名称 = 模型.name
+        bpy.ops.wm.open_mainfile(filepath=保存路径)
+        模型 = bpy.data.objects[模型名称]
+        模型.select_set(True)
+        透透小二(self, 模型)
         # 保存最终文件
         bpy.ops.wm.save_mainfile(filepath=self.filepath)
         # except Exception as e:
         #     self.report({'ERROR'}, f"导出失败: {str(e)}")
         #     return {'CANCELLED'}
+        # 删除备份文件 (blend1)  #1.0.3新增
+        备份文件 = f"{保存路径}1"  # Blender自动创建的备份文件
+        if os.path.exists(备份文件):
+            try:
+                os.remove(备份文件)
+                self.report({'INFO'}, f"已删除备份文件: {备份文件}")
+            except Exception as e:
+                self.report({'WARNING'}, f"删除备份文件失败: {str(e)}")
         return {'FINISHED'}
 
 class OpenWebsite(bpy.types.Operator):
@@ -580,7 +586,7 @@ class OpenWebsite(bpy.types.Operator):
 
 class XiaoerBilibiliOpenWebsite(OpenWebsite):
     bl_idname = "xiaoer.open_website_bilibili"
-    bl_label = "小二新教程啥时候更新捏"
+    bl_label = " 小二新教程啥时候更新捏"
     bl_description = "点击前往小二主页催更"
     url: bpy.props.StringProperty(default="https://space.bilibili.com/437528440?spm_id_from=333.337.0.0")
 class XiaoerAfdianOpenWebsite(OpenWebsite):
@@ -595,9 +601,9 @@ class XiaoerAplayboxOpenWebsite(OpenWebsite):
     url: bpy.props.StringProperty(default="https://www.aplaybox.com/u/872092888")
 
 class XiaoerUI(bpy.types.Panel):
-    bl_category = "XiaoerTools"  # 侧边栏标签
+    bl_category = "导入小二"  # 侧边栏标签
     bl_label = "小二主页"  # 工具卷展栏标签
-    bl_idname = "OBJECT_PT_import"  # 工具ID
+    bl_idname = "OBJECT_PT_import1"  # 工具ID
     bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
     bl_region_type = 'UI'  # 区域类型:右边侧栏
 
@@ -605,21 +611,21 @@ class XiaoerUI(bpy.types.Panel):
         layout = self.layout
 
         # 添加按钮
-        row = layout.row(align=True)
-        row.operator(
+        行 = layout.row(align=True)
+        行.operator(
             "xiaoer.open_website_bilibili",  # 操作符 ID
-            icon_value=pcoll["小二"].icon_id,   # 按钮图标
+            icon_value=图标预览["小二"].icon_id,   # 按钮图标
             emboss=False  # 隐藏按钮背景
         )
-        split = row.split(factor=0.08, align=True)
-        col = split.column(align=True)
-        col.label(icon='FUND')
+        左侧 = 行.split(factor=0.08, align=True)
+        右端 = 左侧.column(align=True)
+        右端.label(icon='FUND')
 
 # 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/panels/sidebar.py
 class MMDtoolsUI(bpy.types.Panel):
-    bl_category = "XiaoerTools"  # 侧边栏标签
+    bl_category = "导入小二"  # 侧边栏标签
     bl_label = "mmd_tools"  # 工具卷展栏标签
-    bl_idname = "OBJECT_PT_import0"  # 工具ID
+    bl_idname = "OBJECT_PT_import2"  # 工具ID
     bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
     bl_region_type = 'UI'  # 区域类型:右边侧栏
 
@@ -638,16 +644,16 @@ class MMDtoolsUI(bpy.types.Panel):
 
         exist = check_operator_exists('mmd_tools.import_model')
         if exist:  # 如果存在mmd_tools操作符
-            row = self.layout.row()
-            col = row.column(align=True)
+            行 = self.layout.row()
+            col = 行.column(align=True)
             col.operator('mmd_tools.import_model', text="导入模型", icon='OUTLINER_OB_ARMATURE')
-            col = row.column(align=True)
+            col = 行.column(align=True)
             col.operator('mmd_tools.import_vmd', text='导入动作', icon='ANIM')
-            col = row.column(align=True)
+            col = 行.column(align=True)
             col.operator('mmd_tools.import_vpd', text='导入姿态', icon='POSE_HLT')
         if context.object:
-            row = self.layout.row()
-            col = row.column(align=True)
+            行 = self.layout.row()
+            col = 行.column(align=True)
             active_object: bpy.types.Object = context.active_object
             mmd_root_object = model.Model.findRoot(active_object)
             if mmd_root_object:
@@ -656,7 +662,7 @@ class MMDtoolsUI(bpy.types.Panel):
                     col.operator('mmd_tools.build_rig', text='物理', icon='PHYSICS', depress=False)
                 else:
                     col.operator('mmd_tools.clean_rig', text='物理', icon='PHYSICS', depress=True)
-                col = row.column(align=True)
+                col = 行.column(align=True)
                 rigidbody_world = context.scene.rigidbody_world
                 if rigidbody_world:
                     point_cache = rigidbody_world.point_cache
@@ -666,190 +672,193 @@ class MMDtoolsUI(bpy.types.Panel):
                         col.operator("mmd_tools.ptcache_rigid_body_bake", text="烘培", icon='MEMORY')
 
 class ImportMatPresetsUI(bpy.types.Panel):
-    bl_category = "XiaoerTools"  # 侧边栏标签
+    bl_category = "导入小二"  # 侧边栏标签
     bl_label = "使用预设"  # 工具卷展栏标签
-    bl_idname = "OBJECT_PT_import1"  # 工具ID
-    bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
-    bl_region_type = 'UI'  # 区域类型:右边侧栏
-
-    # 定义一个绘制函数
-    def draw(self, context):
-
-        prefs = context.preferences.addons[__name__].preferences
-
-        # 导入按钮
-        row = self.layout.row()
-        row.scale_y = 2
-        if prefs.auto_find:  # 自动导入
-            row.operator("import_test.import_mat_presets", text="炒飞小二", icon='IMPORT')
-        else:  #手动导入
-            row.operator("import_test.import_mat_presets_filebrowser", text="手动导入", icon='IMPORT')
-
-        # 自动查找开关
-        row = self.layout.row()
-        row.prop(prefs, "auto_find", text="自动查找预设", icon='VIEWZOOM')
-
-        # 默认姿态开关
-        row = self.layout.row()
-        row.prop(prefs, "default_pose", text="默认姿态",icon='OUTLINER_DATA_ARMATURE')
-
-        # 连续导入开关
-        row = self.layout.row()
-        row.prop(prefs, "continuous_importer", text="连续导入（重命名资产）",icon='ASSET_MANAGER')
-
-class GetMatPresetsUI(bpy.types.Panel):
-    bl_category = "XiaoerTools"  # 侧边栏标签
-    bl_label = "获取预设"  # 工具卷展栏标签
-    bl_idname = "OBJECT_PT_import2"  # 工具ID
-    bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
-    bl_region_type = 'UI'  # 区域类型:右边侧栏
-
-    def draw(self, context):
-        row = self.layout.row()
-        col = row.column(align=True)
-        col.operator(
-            "xiaoer.open_website_afdian",  # 操作符 ID
-            text="爱发电",
-            icon_value=pcoll["爱发电"].icon_id   # 按钮图标
-        )
-        col = row.column(align=True)
-        col.operator(
-            "xiaoer.open_website_aplaybox",  # 操作符 ID
-            text="模之屋",
-            icon_value=pcoll["模之屋"].icon_id   # 按钮图标
-        )
-
-class ExecuteTemplateUI(bpy.types.Panel):
-    bl_category = "XiaoerTools"  # 侧边栏标签
-    bl_label = "制作预设"  # 工具卷展栏标签
     bl_idname = "OBJECT_PT_import3"  # 工具ID
     bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
     bl_region_type = 'UI'  # 区域类型:右边侧栏
 
     # 定义一个绘制函数
     def draw(self, context):
-        prefs = context.preferences.addons[__name__].preferences
+
+        偏好 = context.preferences.addons[__name__].preferences
+
+        # 导入按钮
+        行 = self.layout.row()
+        行.scale_y = 2
+        if 偏好.自动查找预设:  # 自动导入
+            行.operator("import_test.import_mat_presets", text="炒飞小二", icon='IMPORT')
+        else:  #手动导入
+            行.operator("import_test.import_mat_presets_filebrowser", text="手动导入", icon='IMPORT')
+
+        # 自动查找开关
+        行 = self.layout.row()
+        行.prop(偏好, "自动查找预设", text="自动查找预设", icon='VIEWZOOM')
+
+        # 默认姿态开关
+        行 = self.layout.row()
+        行.prop(偏好, "默认姿态", text="默认姿态",icon='OUTLINER_DATA_ARMATURE')
+
+        # 连续导入开关
+        行 = self.layout.row()
+        行.prop(偏好, "重命名资产", text="连续导入（重命名资产）",icon='ASSET_MANAGER')
+
+        if not 偏好.开启制作预设:  # 1.0.3新增
+            行 = self.layout.row()
+            行.operator("import_xiaoer.open_addon_prefs", text="打开偏好设置", icon='PREFERENCES')
+            # 导出预设
+            行 = self.layout.row()
+            行.scale_y = 2
+            行.operator("export_test.export_mat_presets", text="导出预设", icon='EXPORT')
+
+class GetMatPresetsUI(bpy.types.Panel):
+    bl_category = "导入小二"  # 侧边栏标签
+    bl_label = "获取预设"  # 工具卷展栏标签
+    bl_idname = "OBJECT_PT_import4"  # 工具ID
+    bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
+    bl_region_type = 'UI'  # 区域类型:右边侧栏
+
+    def draw(self, context):
+        行 = self.layout.row()
+        列 = 行.column(align=True)
+        列.operator(
+            "xiaoer.open_website_afdian",  # 操作符 ID
+            text="爱发电",
+            icon_value=图标预览["爱发电"].icon_id   # 按钮图标
+        )
+        列 = 行.column(align=True)
+        列.operator(
+            "xiaoer.open_website_aplaybox",  # 操作符 ID
+            text="模之屋",
+            icon_value=图标预览["模之屋"].icon_id   # 按钮图标
+        )
+
+class ExecuteTemplateUI(bpy.types.Panel):
+    bl_category = "导入小二"  # 侧边栏标签
+    bl_label = "制作预设"  # 工具卷展栏标签
+    bl_idname = "OBJECT_PT_import5"  # 工具ID
+    bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
+    bl_region_type = 'UI'  # 区域类型:右边侧栏
+
+    @classmethod  # 1.0.3新增
+    def poll(cls, context):
+        偏好 = context.preferences.addons[__name__].preferences
+        return 偏好.开启制作预设
+
+    # 定义一个绘制函数
+    def draw(self, context):
+        偏好 = context.preferences.addons[__name__].preferences
 
         # 选择预设模板
-        row = self.layout.row()
-        split = row.split(factor=0.4)  # 分割行，左侧占40%宽度
-        split.label(text = "选择游戏")
-        split_right = split.column(align=True)  # 右侧子行
-        split_right.operator("import_xiaoer.open_addon_prefs", text="打开偏好设置", icon='PREFERENCES')
+        行 = self.layout.row()
+        左侧 = 行.split(factor=0.4)  # 分割行，左侧占40%宽度
+        左侧.label(text = "选择游戏")
+        右侧 = 左侧.column(align=True)  # 右侧子行
+        右侧.operator("import_xiaoer.open_addon_prefs", text="打开偏好设置", icon='PREFERENCES')
 
-        box = self.layout.box()
-        box.template_list(
+        框 = self.layout.box()
+        框.template_list(
             "GAME_UL_TemplateList",  # UIList类名
             "template_list",         # 列表ID
-            prefs, "game_templates", # 数据集合
-            prefs, "active_template_index" # 当前选中索引
+            偏好, "游戏列表", # 数据集合
+            偏好, "当前列表选项索引" # 当前选中索引
         )
 
         # 导入贴图开关
-        row = self.layout.row()
-        split = row.split(align=True)  # 分割行
-        split.prop(prefs, "import_image", text="导入贴图", icon='IMPORT')
+        行 = self.layout.row()
+        左侧 = 行.split(align=True)  # 分割行
+        左侧.prop(偏好, "导入贴图", text="导入贴图", icon='IMPORT')
         # 搜索贴图路径开关
-        split = row.split(align=True)
-        split.prop(prefs, "search_image", text="搜索贴图", icon='VIEWZOOM')
-        split.enabled = prefs.import_image  # 根据 import_image 启用/禁用
+        右侧 = 行.split(align=True)
+        右侧.prop(偏好, "搜索贴图文件夹", text="搜索贴图", icon='VIEWZOOM')
+        右侧.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
 
         # 自动匹配贴图开关
-        row = self.layout.row()
-        split = row.split(align=True)  # 分割行
-        split.prop(prefs, "auto_match_image", text="匹配贴图", icon='XRAY')
-        split.enabled = prefs.import_image  # 根据 import_image 启用/禁用
+        行 = self.layout.row()
+        左侧 = 行.split(align=True)  # 分割行
+        左侧.prop(偏好, "匹配基础贴图", text="匹配基础贴图", icon='XRAY')  #1.0.3
+        左侧.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
         # 汉明距离
-        split = row.split(align=True)  # 分割行
-        split.prop(prefs, "Hamming_distance", text="汉明距离", slider=True, icon='MOD_LENGTH')
-        split.enabled = prefs.import_image and prefs.auto_match_image  # 双重依赖条件
+        右侧 = 行.split(align=True)  # 分割行
+        右侧.prop(偏好, "汉明距离", text="<=汉明距离", slider=True, icon='MOD_LENGTH')
+        右侧.enabled = 偏好.导入贴图 and 偏好.匹配基础贴图  # 双重依赖条件
 
         # 导入预设模板
-        row = self.layout.row()
-        row.scale_y = 2
-        row.operator("import_xiaoer.execute_template", text="加载预设模板", icon='NODE')
+        行 = self.layout.row()
+        行.scale_y = 2
+        行.operator("import_xiaoer.execute_template", text="加载预设模板", icon='NODE')
 
         # 导出预设
-        row = self.layout.row()
-        row.scale_y = 2
-        row.operator("export_test.export_mat_presets", text="导出预设", icon='EXPORT')
+        行 = self.layout.row()
+        行.scale_y = 2
+        行.operator("export_test.export_mat_presets", text="导出预设", icon='EXPORT')
 
 classes = (
-            # SetTemplatePathBaseOperator,
-            SetUserPathOperator,
-            SetImagePathOperator,
+    # SetTemplatePathBaseOperator,
+    SetUserPathOperator,
+    SetImagePathOperator,
 
-            # SetHonkai3Part1PathOperator,
-            # SetHonkai3Part2PathOperator,
-            SetHonkai3PathOperator,
-            SetGenshinPathOperator,
-            SetHonkaiStarRailPathOperator,
-            SetZenlessZoneZeroPathOperator,
-            SetWutheringwavesPathOperator,
+    SetHonkai3PathOperator,
+    SetGenshinPathOperator,
+    SetHonkaiStarRailPathOperator,
+    SetZenlessZoneZeroPathOperator,
+    SetWutheringwavesPathOperator,
 
-            GameTemplateItem,  #  必须在偏好前定义
-            GAME_UL_TemplateList,
+    GameTemplateItem,  #  必须在偏好前定义
+    GAME_UL_TemplateList,
 
-            # AddonUpdaterConfig,
-            # UpdateCandidateInfo,
-            # AddonUpdaterManager,
-            CheckAddonUpdate,
-            UpdateAddon,
+    # AddonUpdaterConfig,
+    # UpdateCandidateInfo,
+    # AddonUpdaterManager,
+    CheckAddonUpdate,
+    UpdateAddon,
 
-            XiaoerPreferences,
-            OPEN_PREFERENCES_OT_open_addon_prefs,
+    XiaoerPreferences,
+    OPEN_PREFERENCES_OT_open_addon_prefs,
 
-            ImportMatPresets,
-            ImportMatPresetsFilebrowser,
+    ImportMatPresets,
+    ImportMatPresetsFilebrowser,
 
-            # GameTemplateItem,
-            # GAME_UL_TemplateList,
+    # GameTemplateItem,
+    # GAME_UL_TemplateList,
 
-            ExecuteTemplate,
-            # ExecuteTemplateFilebrowser,
-            # ImportTextureFilebrowser,
+    ExecuteTemplate,
 
-            ExportMatPresets,
+    ExportMatPresets,
 
-            XiaoerBilibiliOpenWebsite,
-            XiaoerAfdianOpenWebsite,
-            XiaoerAplayboxOpenWebsite,
+    XiaoerBilibiliOpenWebsite,
+    XiaoerAfdianOpenWebsite,
+    XiaoerAplayboxOpenWebsite,
 
-            XiaoerUI,
-            MMDtoolsUI,
-            ImportMatPresetsUI,
-            GetMatPresetsUI,
-            ExecuteTemplateUI,
+    XiaoerUI,
+    MMDtoolsUI,
+    ImportMatPresetsUI,
+    GetMatPresetsUI,
+    ExecuteTemplateUI,
 )
 
-icon_map = [  # 图标文件名，引用图标，模板偏好路径
-    ('xiaoer.jpg', '小二', ''),
-    ('afdian.png', '爱发电', ''),
-    ('aplaybox.png', '模之屋', ''),
-    ('Honkai3Part1.png', '崩坏三', 'honkai3'),
-    ('Genshin.png', '原神','genshin'),
-    ('HonkaiStarRail.png', '崩坏：星穹铁道', 'honkai_star_rail'),
-    ('ZenlessZoneZero.png', '绝区零', 'zenless_zone_zero'),
-    ('WutheringWaves.png', '鸣潮', 'wuthering_waves'),
-]
-no_game = ('xiaoer.jpg','afdian.png','aplaybox.png','fengfeng.jpg','fusheng.jpg','ChatGPT.jpeg','deepseek.png','wulu.png')
-def get_icon_path():
-    prefs = bpy.context.preferences.addons[__name__].preferences
-    pcoll = previews.new()
-    for filename, name, identifier in icon_map:
-        icon_path = os.path.join(os.path.dirname(__file__), "icon", filename)
-        if filename not in no_game and name not in prefs.game_templates:
-            item = prefs.game_templates.add()
-            item.identifier = identifier
-            item.name = name
-        if os.path.exists(icon_path):
+def 游戏列表添加(游戏):
+    偏好 = bpy.context.preferences.addons[__name__].preferences
+    for 东西 in 偏好.游戏列表:
+        if 东西.名称 == 游戏:
+            return
+    东西 = 偏好.游戏列表.add()
+    东西.名称 = 游戏
+
+def 加载图标():
+    图标预览 = previews.new()
+    图标文件夹 = os.path.join(os.path.dirname(__file__), "图标")
+    for 文件名 in os.listdir(图标文件夹):
+        图标路径 = os.path.join(os.path.dirname(__file__), "图标", 文件名)
+        图标名称 = 文件名[:-4]
+        if os.path.exists(图标路径):
             try:
-                pcoll.load(name,icon_path,'IMAGE')  # 使用显示名作为键
+                图标预览.load(图标名称,图标路径,'IMAGE')  # 使用显示名作为键
             except KeyError as e:
                 if "already exists" in str(e):
                     continue  # 如果已经加载则跳过
                 raise  # 其他错误继续抛出
-    return pcoll
+    return 图标预览
 
 def register():
 
@@ -859,11 +868,17 @@ def register():
     for clss in classes:
         bpy.utils.register_class(clss)
 
-    global pcoll
-    pcoll = get_icon_path()  # 使用game_templates检查，必须在注册之后
+    游戏列表添加("崩坏三")
+    游戏列表添加("原神")
+    游戏列表添加("崩坏：星穹铁道")
+    游戏列表添加("绝区零")
+    游戏列表添加("鸣潮")
 
-    _whl_path = os.path.join(os.path.dirname(__file__), "wheels", "ImageHash-4.3.2-py2.py3-none-any.whl")
-    subprocess.run([sys.executable, "-m", "pip", "install", _whl_path])
+    global 图标预览
+    图标预览 = 加载图标()  # 使用游戏列表检查，必须在注册之后
+
+    轮子路径 = os.path.join(os.path.dirname(__file__), "轮子", "ImageHash-4.3.2-py2.py3-none-any.whl")
+    subprocess.run([sys.executable, "-m", "pip", "install", 轮子路径])
 
     python_exe = sys.executable  # 1.01更新：注册安装/升级Pillow
     try:
@@ -883,9 +898,9 @@ def unregister():
     for clss in classes:
         bpy.utils.unregister_class(clss)
 
-    global pcoll
-    previews.remove(pcoll)
-    pcoll = None
+    global 图标预览
+    previews.remove(图标预览)
+    图标预览 = None
 
     # subprocess.run([sys.executable, "-m", "pip", "uninstall", "imagehash"])  # 卸载或关闭插件会卡死
 
