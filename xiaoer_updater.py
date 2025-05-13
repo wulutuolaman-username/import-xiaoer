@@ -117,6 +117,25 @@ def _replace_addon(addon_dir, info, current_addon_path, offset_path=""):
             zf.extractall(workspace_path)
         if offset_path:  # 插件文件夹名称
             src = os.path.join(workspace_path, offset_path)
+
+            # if not os.path.exists(src):
+            #     # 1.0.4修复手动更新解压后因压缩包结构不符合代码预期导致找不到插件安装路径
+            #     entries = os.listdir(workspace_path)  # 找到解压后的单一顶层目录并重命名为 offset_path
+            #     if len(entries) == 1 and os.path.isdir(os.path.join(workspace_path, entries[0])):
+            #         extracted_dir = os.path.join(workspace_path, entries[0])
+            #         renamed_dir = os.path.join(workspace_path, offset_path)
+            #         if os.path.exists(renamed_dir):
+            #             shutil.rmtree(renamed_dir)
+            #         os.rename(extracted_dir, renamed_dir)
+            #     else:
+            #         # 多文件/文件夹解压直接放入 offset_path 目录中
+            #         renamed_dir = os.path.join(workspace_path, offset_path)
+            #         os.makedirs(renamed_dir, exist_ok=True)
+            #         for entry in entries:
+            #             src_path = os.path.join(workspace_path, entry)
+            #             if src_path != renamed_dir:
+            #                 shutil.move(src_path, renamed_dir)
+
             dst = os.path.join(addon_dir, offset_path)  # addon_dir输入的是blender插件文件夹目录\scripts\addons，不是插件文件的目录
             if os.path.exists(src):
                 # 确保目标目录存在

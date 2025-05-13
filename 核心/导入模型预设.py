@@ -21,7 +21,7 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
     for 节点组 in 数据源.node_groups:
         if 节点组.type == 'GEOMETRY' and 节点组.users == 0:  # 未被使用的几何节点组
             几何节点(模型, 节点组)  # 应用几何节点
-            if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+            if 偏好.重命名资产 and 偏好.重命名贴图:  ############### 如果开启了连续导入 ###############
                 for 节点 in 节点组.nodes:
                     if 节点.type == 'GROUP':
                         for 二级节点组 in 节点.node_tree.nodes:
@@ -32,44 +32,55 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
                                             输入接口 = next((s for s in 图像节点.inputs if s.name == 'Image'), None)
                                             if 输入接口 and 输入接口.default_value:
                                                 描边遮罩 = 输入接口.default_value
-                                                描边遮罩.name = f"{描边遮罩.name}_{角色}"  # 描边遮罩重命名
+                                                描边遮罩.name += "_" + 角色  # 描边遮罩重命名
         if 节点组.name.startswith("MMDTexUV") or 节点组.name.startswith("MMDShaderDev"):
             continue  # 如果是MMD固有节点组，无需后续重命名
-        if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
-            节点组.name = f"{节点组.name}_{角色}"  # 节点组重命名
+        if 偏好.重命名资产 and 偏好.重命名节点组:  ############### 如果开启了连续导入 ###############
+            节点组.name += "_" + 角色  # 节点组重命名
 
-    if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+    if 偏好.重命名资产 and 偏好.独立集合:  ############### 如果开启了连续导入 ###############
         # 将模型相关物体移入独立集合
         新集合 = bpy.data.collections.new(角色)  # 新建独立集合
         bpy.context.scene.collection.children.link(新集合)  # 关联到场景集合
+        for 集合 in 模型.users_collection:
+            集合.objects.unlink(模型)
+        新集合.objects.link(模型)
+        for 物 in 数据源.objects:
+            新集合.objects.link(物)  # 将驱动物体移入新集合
         for 集合 in 模型.parent.parent.users_collection:
             集合.objects.unlink(模型.parent.parent)  # 祖父级空物体移出旧集合
         新集合.objects.link(模型.parent.parent)  # 祖父级空物体移入新集合
+    if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+        if 偏好.重命名动作:  ############### 如果开启了连续导入 ###############
+            if 模型.parent.parent.animation_data and 模型.parent.parent.animation_data.action:
+                模型.parent.parent.animation_data.action.name += "_" + 角色
         for 子级 in 模型.parent.parent.children:
-            for 集合 in 子级.users_collection:
-                集合.objects.unlink(子级)  # 祖父级空物体的子级全部移出旧集合
-            新集合.objects.link(子级)  # 祖父级空物体的子级全部移入新集合
-            if 子级.name.startswith(角色):  # 如果是刚体和关节的父级空物体
-                pass
-            else:
-                if 子级.name[-3:].isdigit():  # 如果有副本后缀
-                    子级.name = 子级.name[:-4]  # 剪去后缀
-                if 模型.name.replace("_mesh","") not in 子级.name:
-                    子级.name = f"{子级.name}_{角色}"  # 祖父级空物体的子级物体重命名
-            for 孙级 in 子级.children:
-                for 集合 in 孙级.users_collection:
-                    if 孙级.name[-3:].isdigit():  # 如果有副本后缀
-                        孙级.name = 孙级.name[:-4]  # 剪去后缀
-                        孙级.name = f"{孙级.name}_{角色}"  # 祖父级空物体的孙级物体重命名
-                    集合.objects.unlink(孙级)  # 祖父级空物体的孙级全部移出旧集合
-                新集合.objects.link(孙级)  # 祖父级空物体的孙级全部移入新集合
-                if 孙级 is not 模型:
-                    孙级.name = f"{孙级.name}_{角色}"  # 祖父级空物体的孙级物体重命名
-
-    # 追加物体移入选中网格的集合
-    if 模型.users_collection:  # 检查选中模型是否在集合中
-        for 物 in 数据源.objects:
-            模型.users_collection[0].objects.link(物)  # 将驱动物体移入新集合
+            if 偏好.独立集合:  ############### 如果开启了连续导入 ###############
+                for 集合 in 子级.users_collection:
+                    集合.objects.unlink(子级)  # 祖父级空物体的子级全部移出旧集合
+                新集合.objects.link(子级)  # 祖父级空物体的子级全部移入新集合
+            if 子级.name.startswith(模型.name.split("_mesh")[0]):  # 骨架
+                if 偏好.重命名动作:  ############### 如果开启了连续导入 ###############
+                    if 子级.animation_data and 子级.animation_data.action:
+                        子级.animation_data.action.name += "_" + 角色
+            else:  # 如果是刚体和关节的父级空物体
+                if 偏好.重命名刚体和关节:  ############### 如果开启了连续导入 ###############
+                    子级名 = 子级.name
+                    if 子级名[-3:].isdigit():  # 如果有副本后缀
+                        子级名 = 子级名[:-4]  # 剪去后缀
+                    子级.name = f"{子级名}_{角色}"  # 祖父级空物体的子级物体重命名
+                for 孙级 in 子级.children:
+                    if 偏好.独立集合:  ############### 如果开启了连续导入 ###############
+                        for 集合 in 孙级.users_collection:
+                            集合.objects.unlink(孙级)  # 祖父级空物体的孙级全部移出旧集合
+                        新集合.objects.link(孙级)  # 祖父级空物体的孙级全部移入新集合
+                    if 偏好.重命名刚体和关节:  ############### 如果开启了连续导入 ###############
+                        if 孙级 is 模型:
+                            continue
+                        孙级名 = 孙级.name
+                        if 孙级名[-3:].isdigit():  # 如果有副本后缀
+                            孙级名 = 孙级.name[:-4]  # 剪去后缀
+                        孙级.name = f"{孙级名}_{角色}"  # 祖父级空物体的孙级物体重命名
 
     # 替换网格材质
     for i, 旧材质 in enumerate(模型.data.materials):  # 在网格中遍历旧材质
@@ -82,12 +93,12 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
                 if 旧材质.name == 新名 or 旧材质.name[:-4] == 新名: # 匹配材质名称
                     模型.data.materials[i] = 新材质  # 替换材质
                     新材质.name = 新名  # 应用材质原名称
-                    if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
-                        新材质.name = f"{新材质.name}_{角色}"  # 网格材质重命名
+                    if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
+                        新材质.name += "_" + 角色  # 网格材质重命名
     # 替换MMD变形材质
     for 变形 in 模型.parent.parent.mmd_root.material_morphs:
         for 数据 in 变形.data:
-            if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+            if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
                 数据.material = f"{数据.material[:-4]}_{角色}"  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
             else:
                 数据.material = 数据.material[:-4]  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
@@ -96,14 +107,14 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
     # 材质图像重命名
     重命名图像 = set()
     def 重命名贴图(偏好, 节点, 角色):
-        if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+        if 偏好.重命名资产 and 偏好.重命名贴图:  ############### 如果开启了连续导入 ###############
             图像 = 节点.image
             if 图像 and 图像 not in 重命名图像:
                 重命名图像.add(图像)
                 if 筛选图像(图像):
                     pass
                 else:
-                    图像.name = f"{图像.name}_{角色}"  # 材质图像重命名
+                    图像.name += "_" + 角色  # 材质图像重命名
 
     def 递归节点组(节点组):
         for 节点 in 节点组.node_tree.nodes:
@@ -136,19 +147,25 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
     # 绑定头骨
     绑定(偏好, 模型)  # 必须在关联集合后
 
-    if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+    if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
         for 材质 in 数据源.materials:
             if 材质.name not in 模型.data.materials:
-                材质.name = f"{材质.name}_{角色}"  # 描边材质重命名
+                材质.name += "_" + 角色  # 描边材质重命名
         # for image in 数据源.images:
         #     if check_material_image_name(image):
         #         continue
         #     image.name = f"{image.name}_{角色}"  # 图像重命名  # 在清理材质图像时改变了属性，所以不可用
+    if 偏好.重命名资产 and 偏好.重命名驱动物体:  ############### 如果开启了连续导入 ###############
         for 物 in 数据源.objects:
-            物.name = f"{物.name}_{角色}"  # 驱动物体重命名
+            物.name += "_" + 角色  # 驱动物体重命名
             if 物.type == "LIGHT":
-                物.data.name = f"{物.data.name}_{角色}"  # 虚拟灯光数据块重命名
-        if 模型.data.shape_keys:
-            if 模型.data.shape_keys.name[-3:].isdigit():
-                模型.data.shape_keys.name = 模型.data.shape_keys.name[:-4]
-            模型.data.shape_keys.name = f"{模型.data.shape_keys.name}_{角色}"  # 形态键重命名
+                物.data.name += "_" + 角色  # 虚拟灯光数据块重命名
+    if 偏好.重命名资产 and 偏好.重命名形态键:  ############### 如果开启了连续导入 ###############
+        if 偏好.重命名形态键:  ############### 如果开启了连续导入 ###############
+            if 模型.data.shape_keys:
+                if 模型.data.shape_keys.name[-3:].isdigit():
+                    模型.data.shape_keys.name = 模型.data.shape_keys.name[:-4]
+                模型.data.shape_keys.name += "_" + 角色  # 形态键重命名
+        if 偏好.重命名动作:  ############### 如果开启了连续导入 ###############
+            if 模型.data.shape_keys.animation_data and 模型.data.shape_keys.animation_data.action:
+                模型.data.shape_keys.animation_data.action.name += "_" + 角色

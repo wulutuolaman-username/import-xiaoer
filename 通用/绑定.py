@@ -34,7 +34,7 @@ def 绑定(prefs, model):
             bpy.ops.object.parent_set(type='BONE', xmirror=False, keep_transform=True)
             bpy.ops.object.mode_set(mode='OBJECT')  # 切换回对象模式
             bpy.ops.object.select_all(action='DESELECT')  # 清空选中
-    else:  # 如果模型不是默认姿态
+    else:  # 如果模型不是默认姿态  # 代码来源：峰峰居士
         for m in model.modifiers:  # 原版代码的绑定方法，可以精准定位，但是通过矩阵变换改变了面部定位的属性
             if m.type == 'ARMATURE':
                 if m.object:

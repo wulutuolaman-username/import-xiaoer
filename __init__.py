@@ -156,10 +156,58 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
     )
 
     重命名资产: BoolProperty(
-        name="连续导入（重命名资产）",
-        description="开启后可以对材质、节点组、贴图、驱动物体等对象的名称添加角色名重命名,以防止混淆，并放在单独的集合",
+        name="重命名资产",
+        description="建议在连续导入时开启,开启后可以对材质、节点组、贴图、驱动物体等对象的名称添加角色名重命名,以防止混淆，并放在单独的集合",
         default=False
     )
+
+    独立集合: BoolProperty(
+        name="集合",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名材质: BoolProperty(
+        name="材质",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名贴图: BoolProperty(
+        name="贴图",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名动作: BoolProperty(
+        name="动作",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名节点组: BoolProperty(
+        name="节点组",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名形态键: BoolProperty(
+        name="形态键",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名驱动物体: BoolProperty(
+        name="驱动物体",
+        description="",
+        default=True
+    )  # 1.0.4新增
+
+    重命名刚体和关节: BoolProperty(
+        name="刚体和关节",
+        description="",
+        default=True
+    )  # 1.0.4新增
 
     开启制作预设: BoolProperty(
         name="开启制作预设",
@@ -306,6 +354,25 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
         键 = 行.operator("xiaoer.set_user_path", text="选择预设目录", icon='FILE_FOLDER')
         键.属性 = "预设目录"  # 将路径属性名传递给操作符
 
+        列 = layout.column(align=True)  # 1.0.4新增
+        行 = 列.row(align=True)
+        分割 = 行.split(factor=0.3)
+        左侧 = 分割.column()  # 分割行，左侧占30%宽度
+        左侧.prop(self, "重命名资产", text="重命名资产可选项： ", icon='ASSET_MANAGER')
+        左侧.scale_y = 2
+        右侧 = 分割.column()  # 右侧子行
+        右侧.enabled = self.重命名资产
+        右行 = 右侧.row(align=True)
+        右行.prop(self, "独立集合", icon='OUTLINER_COLLECTION')
+        右行.prop(self, "重命名材质", icon='MATERIAL')
+        右行.prop(self, "重命名贴图", icon='IMAGE_DATA')
+        右行.prop(self, "重命名节点组", icon='NODETREE')
+        右行 = 右侧.row(align=True)
+        右行.prop(self, "重命名动作", icon='ACTION')
+        右行.prop(self, "重命名形态键", icon='SHAPEKEY_DATA')
+        右行.prop(self, "重命名驱动物体", icon='OBJECT_DATA')
+        右行.prop(self, "重命名刚体和关节", icon='RIGID_BODY')
+
         行 = layout.row(align=True)  # 1.0.3新增
         行.prop(self, "开启制作预设", text="  开启制作预设面板 需自备贴图和预设模板")
         行 = layout.row(align=True)
@@ -356,6 +423,31 @@ class OPEN_PREFERENCES_OT_open_addon_prefs(bpy.types.Operator):
             self.report({'WARNING'}, "插件未找到，请确保已启用。")
         return {'FINISHED'}
 
+# 全选模型  # 1.0.4新增
+class SelectAllMeshes(bpy.types.Operator):
+    """全选模型"""
+    bl_idname = "import_xiaoer.select_all_meshes"
+    bl_label = "全选模型"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return context.mode == 'OBJECT'  # 必须是物体模式
+    def execute(self, context):
+        # 取消所有选择
+        bpy.ops.object.select_all(action='DESELECT')
+        # 遍历所有对象，找到骨架及其子网格模型
+        for 骨架 in bpy.data.objects:
+            if 骨架.type == 'ARMATURE':
+                for 模型 in 骨架.children:
+                    if 模型.type == 'MESH':
+                        模型.select = True
+                        # 模型.select_set(True)  # 推荐使用新 API
+                        context.view_layer.objects.active = 模型  # ✅ 设置为激活对象
+        for 物 in bpy.context.selected_objects:
+            self.report({"INFO"}, f'{物.name}')
+        return {'FINISHED'}  # ✅ 必须是 set 类型！
+
 class ImportMatPresets(bpy.types.Operator):
     """ 选择对应模型预设导入 """
     bl_idname = "import_test.import_mat_presets"
@@ -384,7 +476,7 @@ class ImportMatPresets(bpy.types.Operator):
                         炒飞小二(偏好, 模型, 文件路径, 角色, self)
                     else:
                         self.report({"WARNING"}, f"未找到{模型.name}匹配预设，请在偏好设置预设目录，检查模型名称和预设文件名是否正确对应，或关闭自动查找预设手动导入")
-                if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
+                if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
                     清理MMD刚体材质()  # 整理MMD刚体材质
                 return {'FINISHED'}
             else:
@@ -418,7 +510,7 @@ class ImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
         self.report({"INFO"}, f"匹配名称：" + str(角色))
         模型 = bpy.context.object  # 获取当前选中的模型
         炒飞小二(偏好, 模型, 文件路径, 角色, self)
-        if 偏好.默认姿态:  ############### 如果开启了连续导入 ###############
+        if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
             清理MMD刚体材质()  # 整理MMD刚体材质
         return {'FINISHED'}
 
@@ -700,8 +792,11 @@ class ImportMatPresetsUI(bpy.types.Panel):
         行.prop(偏好, "默认姿态", text="默认姿态",icon='OUTLINER_DATA_ARMATURE')
 
         # 连续导入开关
-        行 = self.layout.row()
-        行.prop(偏好, "重命名资产", text="连续导入（重命名资产）",icon='ASSET_MANAGER')
+        行 = self.layout.row(align=True)
+        列 = 行.column()
+        列.operator("import_xiaoer.select_all_meshes", text="全选模型", icon='SELECT_EXTEND')
+        列 = 行.column()
+        列.prop(偏好, "重命名资产", text="重命名资产",icon='ASSET_MANAGER')
 
         if not 偏好.开启制作预设:  # 1.0.3新增
             行 = self.layout.row()
@@ -815,6 +910,8 @@ classes = (
 
     XiaoerPreferences,
     OPEN_PREFERENCES_OT_open_addon_prefs,
+
+    SelectAllMeshes,
 
     ImportMatPresets,
     ImportMatPresetsFilebrowser,
