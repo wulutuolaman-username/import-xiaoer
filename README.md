@@ -1,4 +1,4 @@
-# 1.0.3以前的版本升级至1.0.3+不会继承偏好和面板设置
+# 1.0.3以前的版本升级至1.0.3及之后的版本，不会继承偏好和面板设置
 
 ### 引用[mmd_tools](https://github.com/MMD-Blender/blender_mmd_tools)部分模块
 ### 和[ChatGPT](https://chatgpt.com/)、[DeepSeek](https://chat.deepseek.com/)大战三百回合完成开发
@@ -52,6 +52,6 @@ if f.endswith(".blend"):
 9. 最后绑定定位到头部，注意默认姿态的状态也会影响绑定方式
 
 ### 最后，引用了[mmd_tools](https://github.com/MMD-Blender/blender_mmd_tools)部分模块
-#### 比如面板和更新插件的功能，更新插件的时间由于插件包的文件大小和网络速度需要较长时间，我测试时需要三五分钟左右
+#### 比如面板的操作符和偏好里更新插件的功能，更新插件的时间由于插件包的文件大小和网络速度需要较长时间下载，我测试时需要三五分钟左右
 
 

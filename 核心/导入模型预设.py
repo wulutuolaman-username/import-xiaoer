@@ -6,6 +6,7 @@ from ..几何.几何节点 import 几何节点
 from ..通用.清理 import 清理贴图
 from ..图像.筛选贴图 import 筛选图像
 from ..通用.绑定 import 绑定
+from ..通用.剪尾 import 剪去后缀
 
 def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
     self.report({"INFO"}, f"导入预设" + str(文件路径))
@@ -53,6 +54,9 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
     if 偏好.重命名资产:  ############### 如果开启了连续导入 ###############
         if 偏好.重命名动作:  ############### 如果开启了连续导入 ###############
             if 模型.parent.parent.animation_data and 模型.parent.parent.animation_data.action:
+                名称, 后缀 = 剪去后缀(模型.parent.parent.animation_data.action.name)
+                if 后缀:
+                    模型.parent.parent.animation_data.action.name = 名称
                 模型.parent.parent.animation_data.action.name += "_" + 角色
         for 子级 in 模型.parent.parent.children:
             if 偏好.独立集合:  ############### 如果开启了连续导入 ###############
@@ -62,39 +66,62 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
             if 子级.name.startswith(模型.name.split("_mesh")[0]):  # 骨架
                 if 偏好.重命名动作:  ############### 如果开启了连续导入 ###############
                     if 子级.animation_data and 子级.animation_data.action:
+                        名称, 后缀 = 剪去后缀(子级.animation_data.action.name)
+                        if 后缀:
+                            子级.animation_data.action.name = 名称
                         子级.animation_data.action.name += "_" + 角色
             else:  # 如果是刚体和关节的父级空物体
                 if 偏好.重命名刚体和关节:  ############### 如果开启了连续导入 ###############
-                    子级名 = 子级.name
-                    if 子级名[-3:].isdigit():  # 如果有副本后缀
-                        子级名 = 子级名[:-4]  # 剪去后缀
-                    子级.name = f"{子级名}_{角色}"  # 祖父级空物体的子级物体重命名
+                    名称, 后缀 = 剪去后缀(子级.name)
+                    子级.name = f"{名称}_{角色}"  # 祖父级空物体的子级物体重命名
                 for 孙级 in 子级.children:
                     if 偏好.独立集合:  ############### 如果开启了连续导入 ###############
                         for 集合 in 孙级.users_collection:
                             集合.objects.unlink(孙级)  # 祖父级空物体的孙级全部移出旧集合
                         新集合.objects.link(孙级)  # 祖父级空物体的孙级全部移入新集合
                     if 偏好.重命名刚体和关节:  ############### 如果开启了连续导入 ###############
-                        if 孙级 is 模型:
-                            continue
-                        孙级名 = 孙级.name
-                        if 孙级名[-3:].isdigit():  # 如果有副本后缀
-                            孙级名 = 孙级.name[:-4]  # 剪去后缀
-                        孙级.name = f"{孙级名}_{角色}"  # 祖父级空物体的孙级物体重命名
+                        名称, 后缀 = 剪去后缀(孙级.name)
+                        孙级.name = f"{名称}_{角色}"  # 祖父级空物体的孙级物体重命名
+
+    同名集合 = set()
+    模型同名材质列表 = []
+    预设同名材质列表 = []
+    # 检测模型中的同名材质
+    for 材质 in 模型.data.materials:
+        名称, 后缀 = 剪去后缀(材质.name)
+        if 名称 not in 同名集合:
+            同名材质 = [m for m in 模型.data.materials if 剪去后缀(m.name)[0] == 名称]
+            if len(同名材质) > 1:
+                同名集合.add(名称)
+                模型同名材质列表.extend(同名材质)
+    if len(同名集合) > 0:
+        for 名称 in 同名集合:
+            for 材质 in reversed(数据源.materials):
+                if 剪去后缀(材质.name)[0] == 名称:
+                    预设同名材质列表.append(材质)
+        for 模型材质, 预设材质 in zip(模型同名材质列表, 预设同名材质列表):
+            for i, 材质 in enumerate(模型.data.materials):
+                if 材质 is 模型材质:
+                    模型.data.materials[i] = 预设材质
+                    预设材质.name = 模型材质.name
+                    if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
+                        预设材质.name += "_" + 角色  # 网格材质重命名
+                    break
 
     # 替换网格材质
-    for i, 旧材质 in enumerate(模型.data.materials):  # 在网格中遍历旧材质
-        if 旧材质:
-            for 材质 in 数据源.materials:  # 在追加材质中遍历新材质
-                新名 = 材质.name
-                if 材质 and 材质.name[-3:].isdigit():  # 追加材质可能有后缀.001
-                    新名 = 材质.name[:-4]
-                新材质 = 材质  # 获取新材质
-                if 旧材质.name == 新名 or 旧材质.name[:-4] == 新名: # 匹配材质名称
-                    模型.data.materials[i] = 新材质  # 替换材质
-                    新材质.name = 新名  # 应用材质原名称
+    for i, 模型材质 in enumerate(模型.data.materials):  # 在网格中遍历旧材质
+        if 模型材质 not in 预设同名材质列表:
+            名称1, 后缀1 = 剪去后缀(模型材质.name)  # 连续导入模型，材质会产生后缀
+            if 后缀1:
+                模型材质.name = 名称1
+            for 预设材质 in 数据源.materials:  # 在追加材质中遍历新材质
+                名称2, 后缀2 = 剪去后缀(预设材质.name)
+                if 名称1 == 名称2: # 匹配材质名称
+                    模型.data.materials[i] = 预设材质  # 替换材质
+                    预设材质.name = 名称1  # 应用材质原名称
                     if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
-                        新材质.name += "_" + 角色  # 网格材质重命名
+                        预设材质.name += "_" + 角色  # 网格材质重命名
+                    break
     # 替换MMD变形材质
     for 变形 in 模型.parent.parent.mmd_root.material_morphs:
         for 数据 in 变形.data:
@@ -135,13 +162,13 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
                     递归节点组(节点)
                     # 清理MMD固有节点组
                     if 节点.node_tree.name.startswith("MMDTexUV") or 节点.node_tree.name.startswith("MMDShaderDev"):
-                        if 节点.node_tree.name[-3:].isdigit():
-                            新名 = 节点.node_tree.name[:-4]
-                            新节点组 = bpy.data.node_groups.get(新名)
-                            if 新节点组:
-                                节点.node_tree = 新节点组
+                        名称, 后缀 = 剪去后缀(节点.node_tree.name)
+                        if 后缀:
+                            节点组 = bpy.data.node_groups.get(名称)
+                            if 节点组:
+                                节点.node_tree = 节点组
                             else:
-                                节点.node_tree.name = 新名
+                                节点.node_tree.name = 名称
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
 
     # 绑定头骨
@@ -163,9 +190,13 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
     if 偏好.重命名资产 and 偏好.重命名形态键:  ############### 如果开启了连续导入 ###############
         if 偏好.重命名形态键:  ############### 如果开启了连续导入 ###############
             if 模型.data.shape_keys:
-                if 模型.data.shape_keys.name[-3:].isdigit():
-                    模型.data.shape_keys.name = 模型.data.shape_keys.name[:-4]
+                名称, 后缀 = 剪去后缀(模型.data.shape_keys.name)
+                if 后缀:
+                    模型.data.shape_keys.name = 名称
                 模型.data.shape_keys.name += "_" + 角色  # 形态键重命名
         if 偏好.重命名动作:  ############### 如果开启了连续导入 ###############
             if 模型.data.shape_keys.animation_data and 模型.data.shape_keys.animation_data.action:
+                名称, 后缀 = 剪去后缀(模型.data.shape_keys.animation_data.action.name)
+                if 后缀:
+                    模型.data.shape_keys.animation_data.action.name = 名称
                 模型.data.shape_keys.animation_data.action.name += "_" + 角色

@@ -984,9 +984,9 @@ def register():
         # 验证安装
         try:
             from PIL import Image
-            print(f"🟢 Pillow版本: {Image.__version__}")
+            print(f"🟢 pillow版本: {Image.__version__}")
         except ImportError:
-            raise Exception("Pillow安装成功但无法导入，请关闭blender，删除缓存文件后重新启动")
+            raise Exception("pillow安装成功但无法导入，请关闭blender，删除缓存文件后重新启动")
     except Exception:
         raise Exception("pillow安装失败")
 

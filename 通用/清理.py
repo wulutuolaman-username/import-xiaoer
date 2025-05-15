@@ -1,31 +1,33 @@
 # coding: utf-8
 
 import bpy
+from .剪尾 import 剪去后缀
 
 # 清理材质图像
 def 清理贴图(节点):
     图像 = 节点.image
     # 检查最后 4 个字符
     if 图像:  #1.0.3更新
-        后缀 = 图像.name[-4:]
-        if 后缀[0] == '.' and 后缀[1:].isdigit():
-            新名 = 图像.name[:-4]
-            新图 = bpy.data.images.get(新名)
+        名称, 后缀 = 剪去后缀(图像.name)
+        if 后缀:
+            新图 = bpy.data.images.get(名称)
             if 新图:
                 节点.image = 新图
             else:
-                节点.image.name = 新名
+                节点.image.name = 名称
         # bpy.ops.outliner.orphans_purge()  # 清除孤立数据
 
 # 整理MMD刚体材质
 def 清理MMD刚体材质():
     for i, 刚体材质 in enumerate(bpy.data.materials):
         if 刚体材质.name.startswith("mmd_tools_rigid_"):
-            if 刚体材质.name[-3:].isdigit():
-                新名 = 刚体材质.name[:-4]
-                新材质 = bpy.data.materials.get(新名)
-                if 新材质:
-                    bpy.data.materials[i] = 新材质
+            名称, 后缀 = 剪去后缀(刚体材质.name)
+            if 后缀:
+                材质 = bpy.data.materials.get(名称)
+                if 材质:
+                    bpy.data.materials[i] = 材质
+                else:
+                    刚体材质.name = 名称
 
 # # 整理MMD固有节点组
 # def 清理MMD节点组():
