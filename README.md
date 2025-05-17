@@ -24,7 +24,7 @@ if f.endswith(".blend"):
 ```
 3. 增加了默认姿态开关[(两种绑定方式)](https://github.com/wulutuolaman-username/import-xiaoer/blob/main/general/bind_bone.py)
    如果模型处于默认姿态（模型刚导入时的姿态）可以打开此开关，面部定位将会绑定到头骨的中点  
-   如果模型不处于默认姿态（改变了位置、旋转等属性），需要关闭此开关，绑定前面部定位可以精准定位到头骨，但是需要改变旋转属性
+   如果模型不处于默认姿态（改变了旋转属性），需要关闭此开关，绑定时面部定位可以精准定位到头骨，但是需要改变旋转属性
    此状态也将影响下面的加载预设模板
    下图为关闭默认姿态后面部定位的属性  
    ![image](https://github.com/user-attachments/assets/b0d563a1-1e84-4589-9ca5-60b3d6180f49)  
