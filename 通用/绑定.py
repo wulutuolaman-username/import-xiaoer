@@ -9,9 +9,7 @@ def 绑定(偏好, 模型, self):
             骨架 = 模型.parent  # 获取父级骨架对象
 
             if not 骨架:  # 1.0.6调试点
-                self.report({'ERROR'}, "未找到'骨架'对象")
-            for 物 in bpy.context.selected_objects:  # 可能选择了多个物体
-                self.report({'INFO'}, f"清空选中前选中物体：{物.name}")
+                self.report({'ERROR'}, "未找到模型骨架")
 
             bpy.ops.object.select_all(action='DESELECT')  # 清空选中
             # 切换回对象模式并选中子物体
@@ -20,14 +18,6 @@ def 绑定(偏好, 模型, self):
 
             if not 定位:  # 1.0.6调试点
                 self.report({'ERROR'}, "未找到面部定位定位")
-
-            # 1.0.5确保对象在场景集合中
-            if 定位.name not in bpy.context.scene.collection.objects:
-                bpy.context.scene.collection.objects.link(定位)  # 手动加入场景
-            if 模型.users_collection:  # 检查选中模型是否在集合中
-                for 集合 in 定位.users_collection:
-                    集合.objects.unlink(定位)
-                模型.users_collection[0].objects.link(定位)  # 将面部定位移入模型集合
 
             定位.select_set(True)
             # 选中骨骼父级对象并设置为活动对象
@@ -47,8 +37,6 @@ def 绑定(偏好, 模型, self):
 
             for 骨骼 in 骨架.pose.bones:
                 if 骨骼.name == "頭":
-                    # 1.0.6调试点
-                    self.report({'INFO'}, f"找到骨骼：{骨骼.name}")
 
                     骨骼.bone.select = True  # 选中目标骨骼
                     # 1.0.6调试点

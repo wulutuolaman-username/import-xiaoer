@@ -4,7 +4,7 @@ bl_info = {
     "name": "导入小二",
     "description": "基于小二节点，用于特定游戏模型预设的Blender插件",
     "author": "五路拖拉慢",
-    "version": (1, 0, 6),
+    "version": (1, 0, 7),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
@@ -21,7 +21,6 @@ import webbrowser
 from bpy.props import CollectionProperty, StringProperty, BoolProperty, EnumProperty
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.utils import previews
-from mmd_tools.core import model
 
 from .通用.查找 import 查找预设, 查找贴图
 from .核心.导入模型预设 import 炒飞小二
@@ -124,6 +123,28 @@ def _get_update_candidate_branches(_, __):
         return []
 
     return [(name, name, "") for name in updater.get_candidate_branch_names()]
+
+class OpenWebsite(bpy.types.Operator):
+    bl_idname = "xiaoer.open_website"
+    bl_label = "打开网站"
+    bl_description = "点击跳转到指定网站"
+
+    url: bpy.props.StringProperty(name="URL", default="")  # 接收 URL 参数
+
+    def execute(self, context):
+        if self.url:
+            webbrowser.open(self.url)  # 使用 webbrowser 打开链接
+            self.report({'INFO'}, f"已打开: {self.url}")
+        else:
+            self.report({'ERROR'}, "未提供 URL")
+        return {'FINISHED'}
+
+# 1.0.7查看更新历史
+class UpdateHistory(OpenWebsite):
+    bl_idname = "xiaoer.update_history"
+    bl_label = "查看更新历史"
+    bl_description = "各版本Releases插件包附有更新说明"
+    url: bpy.props.StringProperty(default="https://github.com/wulutuolaman-username/import-xiaoer/releases")
 
 # 设置面板开关属性和偏好设置文件路径
 class XiaoerPreferences(bpy.types.AddonPreferences):
@@ -286,7 +307,7 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
             col.scale_y = 2
             col.operator(
                 "xiaoer.check_addon_update",
-                text="检查插件更新（测试）",
+                text="检查插件更新",
                 icon='FILE_REFRESH'
             )
         else:
@@ -295,7 +316,7 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
             col = row.column()
             col.operator(
                 "xiaoer.check_addon_update",
-                text="检查插件更新（测试）",
+                text="检查插件更新",
                 icon='FILE_REFRESH'
             )
             col = row.column()
@@ -307,14 +328,17 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
                     icon='TRIA_DOWN_BAR'
                 ).branch_name = updater.latest_version()
 
-                # 1.02增加版本更新说明
+                # 1.0.7查看更新历史
+                col = row.column()
+                col.operator("xiaoer.update_history",text="查看更新历史",icon="TIME")
+
+                # 1.0.2增加版本更新说明
                 latest_version = updater.latest_version()
                 latest_body = ""
                 for candidate in updater._AddonUpdaterManager__update_candidate:
                     if candidate.name == latest_version and candidate.group == 'RELEASE':
                         latest_body = candidate.body
                         break
-
                 box = update_col.box()
                 box.label(text="更新说明：", icon='TEXT')
                 lines = latest_body.split('\n')
@@ -328,6 +352,10 @@ class XiaoerPreferences(bpy.types.AddonPreferences):
                     "xiaoer.update_addon",
                     text="没有更新可用"
                 )
+
+                # 1.0.7查看更新历史
+                col = row.column()
+                col.operator("xiaoer.update_history",text="查看更新历史",icon="TIME")
 
             update_col.separator()
             update_col.label(text="(Danger) Manual Update:")
@@ -423,7 +451,7 @@ class OPEN_PREFERENCES_OT_open_addon_prefs(bpy.types.Operator):
             self.report({'WARNING'}, "插件未找到，请确保已启用。")
         return {'FINISHED'}
 
-# 全选模型  # 1.0.4新增
+# 1.0.4全选模型
 class SelectAllMeshes(bpy.types.Operator):
     """全选模型"""
     bl_idname = "import_xiaoer.select_all_meshes"
@@ -661,21 +689,6 @@ class ExportMatPresets(bpy.types.Operator,ExportHelper):
                 self.report({'WARNING'}, f"删除备份文件失败: {str(e)}")
         return {'FINISHED'}
 
-class OpenWebsite(bpy.types.Operator):
-    bl_idname = "xiaoer.open_website"
-    bl_label = "打开网站"
-    bl_description = "点击跳转到指定网站"
-
-    url: bpy.props.StringProperty(name="URL", default="")  # 接收 URL 参数
-
-    def execute(self, context):
-        if self.url:
-            webbrowser.open(self.url)  # 使用 webbrowser 打开链接
-            self.report({'INFO'}, f"已打开: {self.url}")
-        else:
-            self.report({'ERROR'}, "未提供 URL")
-        return {'FINISHED'}
-
 class XiaoerBilibiliOpenWebsite(OpenWebsite):
     bl_idname = "xiaoer.open_website_bilibili"
     bl_label = " 小二新教程啥时候更新捏"
@@ -713,7 +726,13 @@ class XiaoerUI(bpy.types.Panel):
         右端 = 左侧.column(align=True)
         右端.label(icon='FUND')
 
-# 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/panels/sidebar.py
+# 1.0.7检查是否安装mmd_tools
+MMD_TOOLS_INSTALLED = False
+try:
+    from mmd_tools.core import model  # 延迟导入，避免未安装时报错
+    MMD_TOOLS_INSTALLED = True
+except ImportError:
+    MMD_TOOLS_INSTALLED = False
 class MMDtoolsUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
     bl_label = "mmd_tools"  # 工具卷展栏标签
@@ -721,47 +740,53 @@ class MMDtoolsUI(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'  # 空间类型():3D视图
     bl_region_type = 'UI'  # 区域类型:右边侧栏
 
+    @classmethod  # 1.0.7检查是否安装mmd_tools
+    def poll(cls, context):
+        return MMD_TOOLS_INSTALLED
+
     # 定义一个绘制函数
     def draw(self, context):
-        def check_operator_exists(op_id):
-            try:
-                # 分割操作符ID为模块和操作符名（例如："mmd_tools.import_model"）
-                module_name, operator_name = op_id.split('.', 1)
-                # 检查 bpy.ops 模块中是否存在对应的操作符
-                op_module = getattr(bpy.ops, module_name)
-                getattr(op_module, operator_name)
-                return True
-            except (AttributeError, ValueError):
-                return False
+        if MMD_TOOLS_INSTALLED:
+            # 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/panels/sidebar.py
+            def check_operator_exists(op_id):
+                try:
+                    # 分割操作符ID为模块和操作符名（例如："mmd_tools.import_model"）
+                    module_name, operator_name = op_id.split('.', 1)
+                    # 检查 bpy.ops 模块中是否存在对应的操作符
+                    op_module = getattr(bpy.ops, module_name)
+                    getattr(op_module, operator_name)
+                    return True
+                except (AttributeError, ValueError):
+                    return False
 
-        exist = check_operator_exists('mmd_tools.import_model')
-        if exist:  # 如果存在mmd_tools操作符
-            行 = self.layout.row()
-            col = 行.column(align=True)
-            col.operator('mmd_tools.import_model', text="导入模型", icon='OUTLINER_OB_ARMATURE')
-            col = 行.column(align=True)
-            col.operator('mmd_tools.import_vmd', text='导入动作', icon='ANIM')
-            col = 行.column(align=True)
-            col.operator('mmd_tools.import_vpd', text='导入姿态', icon='POSE_HLT')
-        if context.object:
-            行 = self.layout.row()
-            col = 行.column(align=True)
-            active_object: bpy.types.Object = context.active_object
-            mmd_root_object = model.Model.findRoot(active_object)
-            if mmd_root_object:
-                mmd_root = mmd_root_object.mmd_root
-                if not mmd_root.is_built:
-                    col.operator('mmd_tools.build_rig', text='物理', icon='PHYSICS', depress=False)
-                else:
-                    col.operator('mmd_tools.clean_rig', text='物理', icon='PHYSICS', depress=True)
+            exist = check_operator_exists('mmd_tools.import_model')
+            if exist:  # 如果存在mmd_tools操作符
+                行 = self.layout.row()
                 col = 行.column(align=True)
-                rigidbody_world = context.scene.rigidbody_world
-                if rigidbody_world:
-                    point_cache = rigidbody_world.point_cache
-                    if point_cache.is_baked is True:
-                        col.operator("mmd_tools.ptcache_rigid_body_delete_bake", text="删除烘培", icon='TRASH')
+                col.operator('mmd_tools.import_model', text="导入模型", icon='OUTLINER_OB_ARMATURE')
+                col = 行.column(align=True)
+                col.operator('mmd_tools.import_vmd', text='导入动作', icon='ANIM')
+                col = 行.column(align=True)
+                col.operator('mmd_tools.import_vpd', text='导入姿态', icon='POSE_HLT')
+            if context.object:
+                行 = self.layout.row()
+                col = 行.column(align=True)
+                active_object: bpy.types.Object = context.active_object
+                mmd_root_object = model.Model.findRoot(active_object)
+                if mmd_root_object:
+                    mmd_root = mmd_root_object.mmd_root
+                    if not mmd_root.is_built:
+                        col.operator('mmd_tools.build_rig', text='物理', icon='PHYSICS', depress=False)
                     else:
-                        col.operator("mmd_tools.ptcache_rigid_body_bake", text="烘培", icon='MEMORY')
+                        col.operator('mmd_tools.clean_rig', text='物理', icon='PHYSICS', depress=True)
+                    col = 行.column(align=True)
+                    rigidbody_world = context.scene.rigidbody_world
+                    if rigidbody_world:
+                        point_cache = rigidbody_world.point_cache
+                        if point_cache.is_baked is True:
+                            col.operator("mmd_tools.ptcache_rigid_body_delete_bake", text="删除烘培", icon='TRASH')
+                        else:
+                            col.operator("mmd_tools.ptcache_rigid_body_bake", text="烘培", icon='MEMORY')
 
 class ImportMatPresetsUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
@@ -902,6 +927,8 @@ classes = (
     GameTemplateItem,  #  必须在偏好前定义
     GAME_UL_TemplateList,
 
+    UpdateHistory,
+
     # AddonUpdaterConfig,
     # UpdateCandidateInfo,
     # AddonUpdaterManager,
@@ -974,17 +1001,31 @@ def register():
     global 图标预览
     图标预览 = 加载图标()  # 使用游戏列表检查，必须在注册之后
 
-    轮子路径 = os.path.join(os.path.dirname(__file__), "轮子", "ImageHash-4.3.2-py2.py3-none-any.whl")
-    subprocess.run([sys.executable, "-m", "pip", "install", 轮子路径])
+    # 轮子路径 = os.path.join(os.path.dirname(__file__), "轮子", "ImageHash-4.3.2-py2.py3-none-any.whl")
+    # subprocess.run([sys.executable, "-m", "pip", "install", 轮子路径])
 
-    python_exe = sys.executable  # 1.01更新：注册安装/升级Pillow
+    python_exe = sys.executable
+
+    # 1.0.7注册安装/升级imagehash
+    try:
+        subprocess.check_call(
+            [python_exe, "-m", "pip", "install", "--force-reinstall", "ImageHash", "--disable-pip-version-check"],
+            stdout=subprocess.DEVNULL
+        )
+        import imagehash
+        version = getattr(imagehash, '__version__', '未知版本')
+        print(f"🟢 ImageHash 安装成功 (版本: {version})")
+    except Exception as e:
+        raise Exception(f"❌ ImageHash 安装失败: {str(e)}")
+
+    # 1.0.1注册安装/升级Pillow
     try:
         # 安装/升级Pillow
         subprocess.check_call([python_exe, "-m", "pip", "install", "--upgrade", "pillow"])
         # 验证安装
         try:
             from PIL import Image
-            print(f"🟢 pillow版本: {Image.__version__}")
+            # print(f"🟢 pillow版本: {Image.__version__}")
         except ImportError:
             raise Exception("pillow安装成功但无法导入，请关闭blender，删除缓存文件后重新启动")
     except Exception:

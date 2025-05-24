@@ -39,6 +39,15 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
         if 偏好.重命名资产 and 偏好.重命名节点组:  ############### 如果开启了连续导入 ###############
             节点组.name += "_" + 角色  # 节点组重命名
 
+    # 1.0.7确保驱动物体在模型集合中
+    for 物 in 数据源.objects:
+        if 物.name not in bpy.context.scene.collection.objects:
+            bpy.context.scene.collection.objects.link(物)  # 手动加入场景
+        if 模型.users_collection:  # 检查选中模型是否在集合中
+            for 集合 in 物.users_collection:
+                集合.objects.unlink(物)
+            模型.users_collection[0].objects.link(物)  # 将驱动物体移入模型集合
+
     if 偏好.重命名资产 and 偏好.独立集合:  ############### 如果开启了连续导入 ###############
         # 将模型相关物体移入独立集合
         新集合 = bpy.data.collections.new(角色)  # 新建独立集合
@@ -83,6 +92,7 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
                         名称, 后缀 = 剪去后缀(孙级.name)
                         孙级.name = f"{名称}_{角色}"  # 祖父级空物体的孙级物体重命名
 
+    # 1.0.5解决同名材质问题
     同名集合 = set()
     模型同名材质列表 = []
     预设同名材质列表 = []
@@ -123,12 +133,14 @@ def 炒飞小二(偏好, 模型, 文件路径, 角色, self):
                         预设材质.name += "_" + 角色  # 网格材质重命名
                     break
     # 替换MMD变形材质
-    for 变形 in 模型.parent.parent.mmd_root.material_morphs:
-        for 数据 in 变形.data:
-            if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
-                数据.material = f"{数据.material[:-4]}_{角色}"  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
-            else:
-                数据.material = 数据.material[:-4]  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
+    if 模型.parent.parent.mmd_root:
+        if 模型.parent.parent.mmd_root.material_morphs:
+            for 变形 in 模型.parent.parent.mmd_root.material_morphs:
+                for 数据 in 变形.data:
+                    if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
+                        数据.material = f"{数据.material[:-4]}_{角色}"  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
+                    else:
+                        数据.material = 数据.material[:-4]  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
 
     # 材质图像重命名
