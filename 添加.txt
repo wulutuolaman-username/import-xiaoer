@@ -1,11 +1,15 @@
 __init__
-class SetTemplatePathBaseOperator
+classes
+def register():
+	游戏列表添加()
 
-class XiaoerPreferences
+\操作\设置路径
+
+\偏好\开启制作
 	模板路径: StringProperty
 	def draw(self, context):
 		设置模板路径(游戏,操作)
-classes
+
 
 \图像\筛选图像
 

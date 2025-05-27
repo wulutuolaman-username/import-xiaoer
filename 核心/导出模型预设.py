@@ -56,6 +56,10 @@ def 透透小二(self, 模型):
     for 节点组 in bpy.data.node_groups:
         if 节点组.users == 0:
             节点组.use_fake_user = True
+    # 1.0.8材质添加伪用户
+    for 材质 in bpy.data.materials:
+        if 材质.users == 0:
+            材质.use_fake_user = True
 
     # 清除调色板
     for 调色板 in bpy.data.palettes:
