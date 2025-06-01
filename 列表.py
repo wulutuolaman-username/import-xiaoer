@@ -23,7 +23,7 @@ class GAME_UL_TemplateList(bpy.types.UIList):
             行.label(text=item.名称, icon_value=icon_id)
 
 def 游戏列表添加(游戏):
-    偏好 = bpy.context.preferences.addons[__name__].preferences
+    偏好 = bpy.context.preferences.addons["导入小二"].preferences
     for 东西 in 偏好.游戏列表:
         if 东西.名称 == 游戏:
             return

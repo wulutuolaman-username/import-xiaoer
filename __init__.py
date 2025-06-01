@@ -65,7 +65,7 @@ classes = (
     SetZenlessZoneZeroPathOperator,
     SetWutheringwavesPathOperator,
 
-    GameTemplateItem,  #  必须在偏好前定义
+    GameTemplateItem,  #  必须在偏好前
     GAME_UL_TemplateList,
 
     UpdateHistory,
@@ -108,7 +108,10 @@ def register():
     register_updater(bl_info, __file__)  # ✅ 确保这行存在
 
     for clss in classes:
-        bpy.utils.register_class(clss)
+        try:  # 1.0.8避免重复注册
+            bpy.utils.register_class(clss)
+        except:
+            pass
 
     global 图标预览
     图标预览 = 加载图标()  # 使用游戏列表检查，必须在注册之后
