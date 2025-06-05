@@ -19,7 +19,7 @@ def 查找预设(偏好, 模型):
 # 自动查找贴图文件
 def 查找贴图(偏好, 模型):
     if not 偏好.贴图目录 or not os.path.exists(偏好.贴图目录):
-        return None
+        return None, None
 
     匹配名称 = 模型.name.replace("_mesh", "")
     匹配名称 = 匹配名称.replace("【", "")
@@ -28,3 +28,4 @@ def 查找贴图(偏好, 模型):
         for 文件夹 in 子目录:
             if 文件夹 in 匹配名称:  # 如果处理后的模型名称包含了文件夹名称
                 return os.path.join(目录, 文件夹),文件夹
+    return None, None  #  1.0.10改动

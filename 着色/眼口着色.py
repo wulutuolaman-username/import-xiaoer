@@ -52,7 +52,7 @@ def 眼口着色(self, 偏好, 数据源, 材质, 匹配贴图, alpha贴图):
             if 图像节点.image in alpha贴图:  # 绝区零目影
                 材质.blend_method = 'BLEND'  # 材质模式
                 材质.show_transparent_back = False
-                混合贴图(偏好,材质, 图像节点, 贴图节点, 调色节点组, 材质输出节点)
+                混合贴图(self, 偏好, 材质, 图像节点, 贴图节点, 调色节点组, 材质输出节点)
             else:  # 原始贴图无alpha
                 材质.node_tree.links.new(
                     调色节点组.outputs[0],  # 节点组的输出插槽
@@ -64,4 +64,8 @@ def 眼口着色(self, 偏好, 数据源, 材质, 匹配贴图, alpha贴图):
                 材质.node_tree.links.new(
                     图像节点.outputs[0],  # 图像节点的输出插槽
                     调色节点组.inputs[0]  # 输出节点的输入插槽
+                )
+                材质.node_tree.links.new(
+                    调色节点组.outputs[0],  # 节点组的输出插槽
+                    材质输出节点.inputs['Surface']  # 输出节点的输入插槽
                 )

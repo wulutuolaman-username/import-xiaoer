@@ -1,4 +1,4 @@
-def 混合贴图(偏好,材质, 图像节点, 贴图节点, 材质节点组, 材质输出节点):
+def 混合贴图(self, 偏好,材质, 图像节点, 贴图节点, 材质节点组, 材质输出节点):
     if 偏好.导入贴图 and 偏好.通过alpha混合贴图:
         贴图节点.location = (-840, 1600)
         映射范围 = 材质.node_tree.nodes.new(type='ShaderNodeMapRange')
@@ -55,6 +55,7 @@ def 混合贴图(偏好,材质, 图像节点, 贴图节点, 材质节点组, 材
         框.location = (-600, 1500)  # 定位
         映射范围.parent = 框
         混合颜色.parent = 框
+        self.report({"INFO"}, f'已完成：通过alpha混合贴图')
     else:
         材质.node_tree.links.new(
             材质节点组.outputs[0],  # 节点组的输出插槽

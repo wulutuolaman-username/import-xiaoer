@@ -41,11 +41,6 @@ class ExecuteTemplateUI(bpy.types.Panel):
         行.prop(偏好, "搜索贴图文件夹", text="通过模型名称搜索贴图文件夹", icon='VIEWZOOM')
         行.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
 
-        # # 自动匹配贴图开关
-        # 行 = self.layout.row()
-        # 左侧 = 行.split(align=True)  # 分割行
-        # 左侧.prop(偏好, "匹配基础贴图", text="匹配基础贴图", icon='XRAY')  #1.0.3
-        # 左侧.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
         # 汉明距离
         行 = self.layout.row()
         行.prop(偏好, "汉明距离", text="匹配基础贴图汉明距离", slider=True, icon='XRAY')
@@ -53,8 +48,18 @@ class ExecuteTemplateUI(bpy.types.Panel):
 
         # 通过alpha混合贴图
         行 = self.layout.row()
-        行.prop(偏好, "通过alpha混合贴图", text="通过alpha混合贴图", icon='IMAGE_ALPHA')  #1.0.3
+        行.prop(偏好, "通过alpha混合贴图", text="通过alpha混合贴图", icon='IMAGE_ALPHA')  #1.0.9
         行.enabled = 偏好.导入贴图
+
+        # 通过点乘混合法向
+        行 = self.layout.row()
+        行.prop(偏好, "通过点乘混合法向", text="通过点乘混合法向", icon='NORMALS_FACE')  #1.0.10
+        行.enabled = 偏好.导入贴图
+
+        # 全选模型 #1.0.10在制作面板增加按钮
+        行 = self.layout.row()
+        行.scale_y = 2
+        行.operator("import_xiaoer.select_all_meshes", text="全选模型", icon='SELECT_EXTEND')
 
         # 导入预设模板
         行 = self.layout.row()

@@ -60,7 +60,7 @@ class ExecuteTemplate(bpy.types.Operator):
                 if 贴图路径 and 角色:
                     self.report({"INFO"}, "搜索到贴图文件夹名称："+str(角色))
                 else:
-                    self.report({"WARNING"}, f"未搜索到{模型.name}贴图")
+                    self.report({"WARNING"}, f"未搜索到{模型.name}贴图文件夹")
                     return {'CANCELLED'}  # 确保返回有效结果
             else:  # 如果没有开启搜索贴图路径，那就是导入偏好路径下的贴图
                 贴图路径 = 偏好.贴图目录

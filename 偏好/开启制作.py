@@ -29,12 +29,6 @@ class OpenMakingAssets:
         default=True
     )
 
-    # 匹配基础贴图: BoolProperty(
-    #     name="匹配基础贴图",
-    #     description="图像感知哈希，先在偏好设置中设置包含所有贴图文件的目录，启用自动查找匹配基础贴图",
-    #     default=True
-    # )
-
     汉明距离: IntProperty(
         name="",
         default=7,
@@ -46,6 +40,12 @@ class OpenMakingAssets:
     通过alpha混合贴图: BoolProperty(
         name="通过alpha混合贴图",
         description="针对原始贴图和解包贴图的alpha不一致情况，通过原始贴图alpha混合贴图进行校正",
+        default=False
+    )
+
+    通过点乘混合法向: BoolProperty(
+        name="通过点乘混合法向",
+        description="针对法向贴图方向相反情况，通过点乘混合法向进行校正",
         default=False
     )
 
