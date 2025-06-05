@@ -1,8 +1,6 @@
 # coding: utf-8
 
-# import bpy
-# import re
-from .贴图.基础贴图 import 获取基础贴图
+from .贴图.基础贴图 import 匹配基础贴图
 from .贴图.光照贴图 import 获取光照贴图
 from .贴图.法线贴图 import 获取法线贴图
 from .贴图节点组.光照贴图节点组 import 获取光照贴图节点组
@@ -11,18 +9,8 @@ from .贴图节点组.我的贴图节点组 import 我的贴图节点组
 from .贴图节点组.重命名节点组 import 重命名节点组
 
 # 材质处理
-def 小二好色(self, 偏好, 数据来源, 材质, 匹配贴图, alpha贴图, 基础贴图匹配的节点组, 材质类型, 小二材质类型, 游戏):
+def 小二好色(self, 偏好, 数据来源, 材质, 匹配贴图, alpha贴图, 基础贴图匹配的节点组, 材质类型, 小二材质类型, 游戏, 透明材质):
     材质输出节点 = (材质.node_tree.nodes.get("材质输出") or 材质.node_tree.nodes.get("Material Output"))  # 找到材质输出节点
-    # MMDShaderDev = material.node_tree.nodes["mmd_shader"]  # 设为透明需要在计算描边时删除该材质
-    # if MMDShaderDev.inputs[12].default_value == 0:
-    #     transparent_node = material.node_tree.nodes.new(type='ShaderNodeBsdfTransparent')  # 新建透明节点
-    #     transparent_node.location = (-200, 1600)  # 定位透明节点
-    #     material.node_tree.links.new(
-    #         transparent_node.outputs[0],  # 节点组的输出插槽
-    #         output_node.inputs['Surface']  # 输出节点的输入插槽
-    #     )
-    #     self.report({"INFO"}, f'材质Material["{material.name}"]根据MMDShaderDev的alpha值为0设为透明"]')
-    #     return  # 如果MMD节点组设置为透明，直接输出透明，然后进入下一个循环
     材质节点组 = 材质.node_tree.nodes.new(type='ShaderNodeGroup')  # 新建节点组
     for 节点组 in 数据来源.node_groups:  # 设置材质节点组
         if 节点组.type == 'SHADER' and (  # 搜索材质节点组
@@ -36,8 +24,38 @@ def 小二好色(self, 偏好, 数据来源, 材质, 匹配贴图, alpha贴图, 
                 材质输出节点.inputs['Surface']  # 材质输出节点的输入插槽
             )
             break  # 找到后立即退出循环，提高效率
+
+    MMD着色节点组 = 材质.node_tree.nodes["mmd_shader"]  # 设为透明需要在设置描边时删除该材质
+    alpha = MMD着色节点组.inputs[12].default_value
+    if alpha < 1:  # 1.0.9检测透明材质
+        透明材质.append(材质)  # 记录透明材质，之后在几何节点设置无描边
+        材质.blend_method = 'BLEND'  # 材质模式
+        材质.show_transparent_back = False
+        透明节点 = 材质.node_tree.nodes.new(type='ShaderNodeBsdfTransparent')  # 新建透明节点
+        透明节点.location = (-200, 1600)  # 定位透明节点
+        框 = 材质.node_tree.nodes.new(type='NodeFrame')
+        框.label = "小二插件：已在几何节点设置无描边"
+        框.location = (-200, 1600)  # 定位
+        透明节点.parent = 框
+        if alpha == 0:
+            材质.node_tree.links.new(
+                透明节点.outputs[0],  # 节点组的输出插槽
+                材质输出节点.inputs['Surface']  # 输出节点的输入插槽
+            )
+            self.report({"INFO"}, f'材质Material["{材质.name}"]根据MMDShaderDev的alpha值为0设为透明"]')
+        if alpha > 0:  # 1.0.9透明混合
+            混合节点 = 材质.node_tree.nodes.new(type='ShaderNodeMixShader')  # 新建混合节点
+            混合节点.location = (250, 1500)  # 定位混合节点
+            混合节点.inputs[0].default_value = alpha
+            材质.node_tree.links.new(透明节点.outputs[0], 混合节点.inputs[1])
+            材质.node_tree.links.new(材质节点组.outputs[0], 混合节点.inputs[2])
+            材质.node_tree.links.new(
+                混合节点.outputs[0],  # 节点组的输出插槽
+                材质输出节点.inputs['Surface']  # 输出节点的输入插槽
+            )
+
     if 偏好.导入贴图:  # 如果开启了导入贴图
-        图像节点,基础贴图 = 获取基础贴图(self, 材质, 匹配贴图)  # 基础贴图
+        图像节点,基础贴图 = 匹配基础贴图(self, 材质, 匹配贴图)  # 基础贴图
         if not 基础贴图:
             # 如果没有匹配基础贴图，尝试根据材质分类指定基础贴图，出错概率较大
             if 材质类型 == "皮肤" or 材质类型 == "衣服":

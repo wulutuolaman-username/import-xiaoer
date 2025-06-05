@@ -10,7 +10,7 @@ def 筛选基础贴图(图像名称):
             "_D" in 图像名称  # 绝区零、鸣潮基础贴图
     )
 
-def 获取基础贴图(self, 材质, 匹配贴图):
+def 匹配基础贴图(self, 材质, 匹配贴图):
     for 图像节点 in 材质.node_tree.nodes:
         if 图像节点.type == 'TEX_IMAGE' and 筛选贴图(图像节点.image.name):
             原始贴图 = 图像节点.image  # 获取原始贴图

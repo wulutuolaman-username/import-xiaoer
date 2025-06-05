@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from .贴图.基础贴图 import 获取基础贴图
+from .贴图.基础贴图 import 匹配基础贴图
 
 def 表情着色(self, 偏好, 数据源, 材质, 匹配贴图):
     透明节点 = 材质.node_tree.nodes.new(type='ShaderNodeBsdfTransparent')  # 新建透明节点
@@ -33,7 +33,7 @@ def 表情着色(self, 偏好, 数据源, 材质, 匹配贴图):
         材质输出节点.inputs['Surface']  # 输出节点的输入插槽
     )
     if 偏好.导入贴图:  # 如果开启了导入贴图
-        原始贴图节点,基础贴图 = 获取基础贴图(self, 材质, 匹配贴图)  # 基础贴图
+        原始贴图节点,基础贴图 = 匹配基础贴图(self, 材质, 匹配贴图)  # 基础贴图
         if 基础贴图:
             self.report({"INFO"}, f'材质Material["{材质.name}"]输入贴图:Texture["{基础贴图.name}"]')
             图像节点 = 材质.node_tree.nodes.new(type='ShaderNodeTexImage')  # 新建图像节点
@@ -51,4 +51,7 @@ def 表情着色(self, 偏好, 数据源, 材质, 匹配贴图):
                     原始贴图节点.outputs[0],  # 图像节点的输出插槽
                     调色节点组.inputs[0]  # 输出节点的输入插槽
                 )
-            材质.node_tree.links.new(原始贴图节点.outputs[1], 混合节点.inputs[0])
+            材质.node_tree.links.new(
+                原始贴图节点.outputs[1],
+                混合节点.inputs[0]
+            )

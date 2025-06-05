@@ -33,7 +33,7 @@ class ImportMatPresets(bpy.types.Operator):
                         self.report({"INFO"}, "匹配名称："+str(角色))
                         炒飞小二(偏好, 模型, 文件路径, 角色, self)
                     else:
-                        self.report({"WARNING"}, f"未找到{模型.name}匹配预设，请在偏好设置预设目录，检查模型名称和预设文件名是否正确对应，或关闭自动查找预设手动导入")
+                        self.report({"WARNING"}, f"未找到{模型.name}匹配预设，请检查：\n  偏好设置预设目录是否包含对应的预设文件\n  模型名称和预设文件名是否正确对应\n或关闭自动查找预设手动导入")
                 if 偏好.重命名资产 and 偏好.重命名材质:  ############### 如果开启了连续导入 ###############
                     清理MMD刚体材质()  # 整理MMD刚体材质
                 return {'FINISHED'}

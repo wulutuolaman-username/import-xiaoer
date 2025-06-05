@@ -23,24 +23,30 @@ class OpenMakingAssets:
         default=True
     )
 
-    匹配基础贴图: BoolProperty(
-        name="匹配基础贴图",
-        description="图像感知哈希，先在偏好设置中设置包含所有贴图文件的目录，启用自动查找匹配基础贴图",
-        default=True
-    )
-
     搜索贴图文件夹: BoolProperty(
         name="搜索贴图文件夹",
         description="先在偏好设置中设置包含所有贴图文件的目录，开启后可以根据模型名称和贴图文件夹名称，搜索对应的贴图所在文件夹，关闭后需要直接指定模型贴图所在文件夹",
         default=True
     )
 
+    # 匹配基础贴图: BoolProperty(
+    #     name="匹配基础贴图",
+    #     description="图像感知哈希，先在偏好设置中设置包含所有贴图文件的目录，启用自动查找匹配基础贴图",
+    #     default=True
+    # )
+
     汉明距离: IntProperty(
         name="",
         default=7,
-        description="汉明距离越小匹配越严格",
+        description="图像感知哈希，汉明距离越小匹配越严格",
         min = 1,  # 最小值
         max = 15,  # 最大值
+    )
+
+    通过alpha混合贴图: BoolProperty(
+        name="通过alpha混合贴图",
+        description="针对原始贴图和解包贴图的alpha不一致情况，通过原始贴图alpha混合贴图进行校正",
+        default=False
     )
 
     游戏列表: CollectionProperty(
@@ -80,7 +86,7 @@ class OpenMakingAssets:
                 左侧 = 行.split(factor=0.1)  # 分割行，左侧占10%宽度
                 左侧.template_icon(icon_value=图标预览[游戏].icon_id, scale=2)  # 图标放在左侧
                 右侧 = 左侧.column(align=True)  # 右侧子行
-                路径 = f'{游戏.replace("：", "")}模板路径'
+                路径 = f'{游戏.replace("：", "")}模板路径'  # 崩坏：星穹铁道变量名不能有冒号
                 右侧.prop(bpy.context.preferences.addons["导入小二"].preferences, 路径, text=游戏, icon='BLENDER')
                 键 = 右侧.operator(操作, icon='BLENDER')
                 键.属性 = 路径  # 将路径属性名传递给操作符

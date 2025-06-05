@@ -4,7 +4,7 @@ bl_info = {
     "name": "导入小二",
     "description": "基于小二节点，用于特定游戏模型预设的Blender插件",
     "author": "五路拖拉慢",
-    "version": (1, 0, 8),
+    "version": (1, 0, 9),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
@@ -134,7 +134,7 @@ def register():
         version = getattr(imagehash, '__version__', '未知版本')
         print(f"🟢 ImageHash 安装成功 (版本: {version})")
     except Exception as e:
-        raise Exception(f"❌ ImageHash 安装失败: {str(e)}")
+        raise Exception(f"ImageHash 安装失败: {str(e)}")
 
     # 1.0.1注册安装/升级Pillow
     try:
@@ -146,8 +146,8 @@ def register():
             # print(f"🟢 pillow版本: {Image.__version__}")
         except ImportError:
             raise Exception("pillow安装成功但无法导入，请关闭blender，删除缓存文件后重新启动")
-    except Exception:
-        raise Exception("pillow安装失败")
+    except Exception as e:
+        raise Exception(f"pillow安装失败: {str(e)}")
 
 def unregister():
 

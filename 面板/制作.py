@@ -34,22 +34,27 @@ class ExecuteTemplateUI(bpy.types.Panel):
 
         # 导入贴图开关
         行 = self.layout.row()
-        左侧 = 行.split(align=True)  # 分割行
-        左侧.prop(偏好, "导入贴图", text="导入贴图", icon='IMPORT')
-        # 搜索贴图路径开关
-        右侧 = 行.split(align=True)
-        右侧.prop(偏好, "搜索贴图文件夹", text="搜索贴图", icon='VIEWZOOM')
-        右侧.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
+        行.prop(偏好, "导入贴图", text="导入贴图", icon='IMPORT')
 
-        # 自动匹配贴图开关
+        # 搜索贴图路径开关
         行 = self.layout.row()
-        左侧 = 行.split(align=True)  # 分割行
-        左侧.prop(偏好, "匹配基础贴图", text="匹配基础贴图", icon='XRAY')  #1.0.3
-        左侧.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
+        行.prop(偏好, "搜索贴图文件夹", text="通过模型名称搜索贴图文件夹", icon='VIEWZOOM')
+        行.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
+
+        # # 自动匹配贴图开关
+        # 行 = self.layout.row()
+        # 左侧 = 行.split(align=True)  # 分割行
+        # 左侧.prop(偏好, "匹配基础贴图", text="匹配基础贴图", icon='XRAY')  #1.0.3
+        # 左侧.enabled = 偏好.导入贴图  # 根据 导入贴图 启用/禁用
         # 汉明距离
-        右侧 = 行.split(align=True)  # 分割行
-        右侧.prop(偏好, "汉明距离", text="<=汉明距离", slider=True, icon='MOD_LENGTH')
-        右侧.enabled = 偏好.导入贴图 and 偏好.匹配基础贴图  # 双重依赖条件
+        行 = self.layout.row()
+        行.prop(偏好, "汉明距离", text="匹配基础贴图汉明距离", slider=True, icon='XRAY')
+        行.enabled = 偏好.导入贴图
+
+        # 通过alpha混合贴图
+        行 = self.layout.row()
+        行.prop(偏好, "通过alpha混合贴图", text="通过alpha混合贴图", icon='IMAGE_ALPHA')  #1.0.3
+        行.enabled = 偏好.导入贴图
 
         # 导入预设模板
         行 = self.layout.row()
