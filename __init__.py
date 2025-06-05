@@ -4,7 +4,7 @@ bl_info = {
     "name": "导入小二",
     "description": "基于小二节点，用于特定游戏模型预设的Blender插件",
     "author": "五路拖拉慢",
-    "version": (1, 0, 9),
+    "version": (1, 0, 10),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
