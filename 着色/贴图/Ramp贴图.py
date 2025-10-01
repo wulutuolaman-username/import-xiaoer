@@ -1,76 +1,118 @@
 # coding: utf-8
 
 import bpy
+import os
 import re
+from ...通用.信息 import 报告信息
 
 def 获取Ramp贴图(self, 游戏, 基础贴图):
+    if 基础贴图.小二预设模板.类型:
+        前缀 = 基础贴图.小二预设模板.前缀
+        部件 = 基础贴图.小二预设模板.部件
+        类型 = 基础贴图.小二预设模板.类型
+        名称, 扩展 = os.path.splitext(os.path.basename(基础贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
 ###################################################################################################
-    if 游戏 == "原神":
-        try:
-            Ramp贴图 = bpy.data.images[基础贴图.name.replace("Diffuse", "Shadow_Ramp")]
-            return Ramp贴图
-        except KeyError as e:
-            if "not found" in str(e):
-                return None  # 如果不存在就跳过
-            else:
-                raise  # 其他错误继续抛出
+        if 游戏 == "原神":
+            Ramp = "Shadow_Ramp"
+            # 优先严格匹配贴图名称
+            新名 = 名称.replace(类型, Ramp)
+            # 报告信息(self, '正常', f'基础贴图“{名称}”尝试搜索ramp贴图“{新名}')
+            for 贴图 in bpy.data.images:
+                名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
+                if 名.lower() == 新名.lower():  # 忽略大小写
+                    return 贴图
+            # 1.1.0宽松匹配：只通过“部件“和”贴图类型”两个条件，通过基础贴图名称找到其他贴图
+            for 贴图 in bpy.data.images:
+                名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
+                if f"_{部件.rstrip('_')}".lower() in 名.lower() and 名.lower().endswith(Ramp.lower()):
+                    报告信息(self, '正常', f'基础贴图“{基础贴图.name}”宽松匹配找到可能的ramp贴图“{贴图.name}')
+                    return 贴图
+            if 部件 and 部件[-1].isdigit():
+                部件 = 部件[:-1]
+            for 贴图 in bpy.data.images:
+                名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
+                # 如果基础贴图部件为Body1、Body2，而ramp贴图部件为Body，去掉部件的数字
+                if f"_{部件.rstrip('_')}".lower() in 名.lower() and 名.lower().endswith(Ramp.lower()):
+                    报告信息(self, '正常', f'基础贴图“{基础贴图.name}”宽松匹配找到可能的ramp贴图“{贴图.name}')
+                    return 贴图
+            return None
 ###################################################################################################
-    if 游戏 == "崩坏：星穹铁道":
-        # 新正则表达式结构说明：
-        # ^(.*_\d{2})_       -> 前缀包含两位数字 (如 Avatar_Fugue_00)
-        # ([^_]+)            -> 部件类型 (Body/Hair/Tail等)
-        # _Color(.*)\.png$   -> Color及其后缀
-        分解 = re.match(r'^(.*_\d{2})_([^_]+)_Color(.*)\.png$', 基础贴图.name)
-        if 分解:
-            前缀, 部件, 后缀 = 分解.groups()
-            # self.report({"INFO"}, f'基础贴图["{diffuse_image}"]\nprefix:{prefix}\npart_type:{part_type}')
-            # 处理Ramp名称：部件后跟数字时不带部件类型
-            if 部件[-1].isdigit():
-                冷名 = f"{前缀}_Cool_Ramp.png"
-                暖名 = f"{前缀}_Warm_Ramp.png"
-                if 暖名 not in bpy.data.images:
-                    部件 = 部件[: -1]
-                    冷名 = f"{前缀}_{部件}_Cool_Ramp.png"
-                    暖名 = f"{前缀}_{部件}_Warm_Ramp.png"
-                    if 暖名 not in bpy.data.images:
-                        冷名 = None
-                        暖名 = f"{前缀}_{部件}_Ramp.png"
-            else:
-                冷名 = f"{前缀}_{部件}_Cool_Ramp.png"
-                暖名 = f"{前缀}_{部件}_Warm_Ramp.png"
-                if 暖名 not in bpy.data.images:
-                    冷名 = f"{前缀}_{部件}_Ramp.png"
-                    暖名 = f"{前缀}_{部件}_Ramp.png"
-            # 检查文件是否存在
-            try:
-                # self.report({"INFO"}, f'cool_ramp_name:{cool_ramp_name }\nwarm_ramp_name:{warm_ramp_name}')
-                冷Ramp = bpy.data.images[冷名]
-                暖Ramp = bpy.data.images[暖名]
-                return 冷Ramp,暖Ramp
-            except KeyError as e:
-                if "not found" in str(e):
-                    return None,None # 如果不存在就跳过
+        if 游戏 == "崩坏：星穹铁道":
+            def 崩铁Ramp(冷, 暖):
+                冷图 = None
+                暖图 = None
+                # 报告信息(self, '正常', f"{暖}\n{冷}")
+                for 贴图 in bpy.data.images:
+                    名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
+                    # if "Ramp" in 名:
+                    #     报告信息(self, '正常', f"{名} {名 == 冷} {名 == 暖}")
+                    if 名 == 冷:
+                        冷图 = 贴图
+                    if 名 == 暖:
+                        暖图 = 贴图
+                return 冷图, 暖图
+
+            # 定义所有可能的查找模式
+            查找模式 = [
+                # (前缀, 部件) 的格式
+                (前缀, 部件),  # 第一次尝试：完整名称
+                (前缀, 部件[:-1] if 部件 and 部件[-1].isdigit() else None),  # 去掉末尾数字
+                (前缀, None),  # 只有前缀  # 萨姆
+                (前缀[:-3] if 前缀 and len(前缀) >= 3 and 前缀[-3] == '_' and 前缀[-2].isdigit() else None, None) # 忆灵
+                # 去掉前缀末尾数字
+            ]
+
+            for 当前前缀, 当前部件 in 查找模式:
+                if not 当前前缀:  # 跳过无效的前缀
+                    continue
+
+                if 当前部件:
+                    冷 = f"{当前前缀}_{当前部件}_Cool_Ramp"
+                    暖 = f"{当前前缀}_{当前部件}_Warm_Ramp"
                 else:
-                    raise  # 其他错误继续抛出
-        else:  # 可能不是角色贴图
-            分解 = re.match(r"^(.*?_[A-Z]\d)_([^_]+)_Color(.*)\.png$", 基础贴图.name)
-            if 分解:
-                前缀, 部件, 后缀 = 分解.groups()
-                # 处理Ramp名称：部件后跟数字时不带部件类型
-                if 部件[-1].isdigit():
-                    部件 = 部件[:-1]
-                冷名 = f"{前缀}_{部件}_Cool_Ramp.png"
-                暖名 = f"{前缀}_{部件}_Warm_Ramp.png"
-                # 检查文件是否存在
-                try:
-                    冷Ramp = bpy.data.images[冷名]
-                    暖Ramp = bpy.data.images[暖名]
-                    return 冷Ramp, 暖Ramp
-                except KeyError as e:
-                    if "not found" in str(e):
-                        return None, None  # 如果不存在就跳过
+                    冷 = f"{当前前缀}_Cool_Ramp"
+                    暖 = f"{当前前缀}_Warm_Ramp"
+
+                冷图, 暖图 = 崩铁Ramp(冷, 暖)
+                # 报告信息(self, '正常', f"{冷图}\n{暖图}")
+                if 冷图 or 暖图:
+                    return 冷图, 暖图
+                else:
+                    if 当前部件:
+                        暖 = f"{当前前缀}_{当前部件}_Ramp"
                     else:
-                        raise  # 其他错误继续抛出
-            else:
-                return None, None  # 如果不存在就跳过
+                        暖 = f"{当前前缀}_Ramp"
+                    冷图, 暖图 = 崩铁Ramp(冷, 暖)
+                    if 冷图 or 暖图:
+                        return 冷图, 暖图
+
+            # 冷 = f"{前缀}_{部件}_Cool_Ramp"
+            # 暖 = f"{前缀}_{部件}_Warm_Ramp"
+            # 冷图, 暖图 = 崩铁Ramp(冷, 暖)
+            # if 冷图 or 暖图:
+            #     return 冷图, 暖图
+            # if len(前缀) > 1 and 前缀 and 部件 and len(部件) > 1 and 部件[-1].isdigit():
+            #     部件 = 部件[: -1]
+            #     冷 = f"{前缀}_{部件}_Cool_Ramp"
+            #     暖 = f"{前缀}_{部件}_Warm_Ramp"
+            #     冷图, 暖图 = 崩铁Ramp(冷, 暖)
+            #     if 冷图 or 暖图:
+            #         return 冷图, 暖图
+            # if 前缀 and not 部件: # 萨姆
+            #     冷 = f"{前缀}_Cool_Ramp"
+            #     暖 = f"{前缀}_Warm_Ramp"
+            #     冷图, 暖图 = 崩铁Ramp(冷, 暖)
+            #     if 冷图 or 暖图:
+            #         return 冷图, 暖图
+            #     if len(前缀) > 3 and 前缀[-3] == '_' and 前缀[-2].isdigit() : # 忆灵
+            #         前缀 = 前缀[: -3]
+            #         冷 = f"{前缀}_Cool_Ramp"
+            #         暖 = f"{前缀}_Warm_Ramp"
+            #         冷图, 暖图 = 崩铁Ramp(冷, 暖)
+            #         if 冷图 or 暖图:
+            #             return 冷图, 暖图
+            # if 暖 not in bpy.data.images:
+            #     报告信息(self, '异常', f"未找到{暖}")
+            # return 冷图, 暖图
+            return None, None
 ###################################################################################################

@@ -24,8 +24,8 @@ class GAME_UL_TemplateList(bpy.types.UIList):
 
 def 游戏列表添加(游戏):
     偏好 = bpy.context.preferences.addons["导入小二"].preferences
-    for 东西 in 偏好.游戏列表:
-        if 东西.名称 == 游戏:
+    for 选项 in 偏好.游戏列表:
+        if 选项.名称 == 游戏:
             return
-    东西 = 偏好.游戏列表.add()
-    东西.名称 = 游戏
+    选项 = 偏好.游戏列表.add()
+    选项.名称 = 游戏

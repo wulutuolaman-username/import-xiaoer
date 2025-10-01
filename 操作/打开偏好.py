@@ -4,7 +4,7 @@ import bpy
 class OPEN_PREFERENCES_OT_open_addon_prefs(bpy.types.Operator):
     """打开插件偏好设置"""
     bl_idname = "import_xiaoer.open_addon_prefs"
-    bl_label = "设置偏好路径"
+    bl_label = "打开偏好"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -18,5 +18,5 @@ class OPEN_PREFERENCES_OT_open_addon_prefs(bpy.types.Operator):
             addon_name = "导入小二"
             context.window_manager.addon_search = addon_name  # 设置搜索过滤
         else:
-            self.report({'WARNING'}, f'"{小二插件}"插件未找到，请确保已启用。')
+            self.report({'ERROR'}, f'"{小二插件}"插件未找到，请确保已启用。')
         return {'FINISHED'}

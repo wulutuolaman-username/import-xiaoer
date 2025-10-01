@@ -306,7 +306,7 @@ class AddonUpdaterManager:
                     info.name = r["tag_name"]
                     info.url = r["assets"][0]["browser_download_url"]
                     info.group = 'RELEASE'
-                    info.body = r.get("body", "")  # 1.02新增body信息
+                    info.body = r.get("body", "")  # 1.0.2新增body信息
                     self.__update_candidate.append(info)
         except RuntimeError as e:
             self.__error = bpy.app.translations.pgettext_iface("Failed to check update {}. ({})").format(str(e), datetime.datetime.now())

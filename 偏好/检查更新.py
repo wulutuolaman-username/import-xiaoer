@@ -10,7 +10,7 @@ def _get_update_candidate_branches(_, __):
 
     return [(name, name, "") for name in updater.get_candidate_branch_names()]
 
-class CheckUpdate:
+class XiaoerAddonCheckUpdate:
     # for add-on updater
     updater_branch_to_update: EnumProperty(
         name='Branch',
@@ -20,6 +20,8 @@ class CheckUpdate:
 
     def 更新面板(self, layout):
         updater = AddonUpdaterManager.get_instance()
+        row = layout.row()  # 1.1.0新增
+        row.label(text="更新功能需要挂加速器。如因其他网络问题更新失败，可以等一段时间再尝试")
         update_col = layout.column(align=False)
         if updater.updated():
             col = update_col.column()
@@ -58,9 +60,9 @@ class CheckUpdate:
                     icon='TRIA_DOWN_BAR'
                 ).branch_name = updater.latest_version()
 
-                # 1.0.7查看更新历史
-                col = row.column()
-                col.operator("xiaoer.update_history", text="查看更新历史", icon="TIME")
+                # # 1.0.7查看更新历史
+                # col = row.column()
+                # col.operator("xiaoer.update_history", text="查看更新历史", icon="TIME")
 
                 # 1.0.2增加版本更新说明
                 latest_version = updater.latest_version()
@@ -83,18 +85,18 @@ class CheckUpdate:
                     text="没有更新可用"
                 )
 
-                # 1.0.7查看更新历史
-                col = row.column()
-                col.operator("xiaoer.update_history", text="查看更新历史", icon="TIME")
+            # 1.0.7查看更新历史  # 1.1.0修改缩进
+            col = row.column()
+            col.operator("xiaoer.update_history", text="查看更新历史", icon="TIME")
 
-            update_col.separator()
-            update_col.label(text="(Danger) Manual Update:")
-            row = update_col.row(align=True)
-            row.prop(self, "updater_branch_to_update", text="Target")
-            row.operator(
-                "xiaoer.update_addon", text="更新",
-                icon='TRIA_DOWN_BAR'
-            ).branch_name = self.updater_branch_to_update
+            # update_col.separator()
+            # update_col.label(text="(Danger) Manual Update:")
+            # row = update_col.row(align=True)
+            # row.prop(self, "updater_branch_to_update", text="Target")
+            # row.operator(
+            #     "xiaoer.update_addon", text="更新",
+            #     icon='TRIA_DOWN_BAR'
+            # ).branch_name = self.updater_branch_to_update
 
             update_col.separator()
             if updater.has_error():

@@ -1,6 +1,4 @@
-__init__
-classes
-def register():
+\挂号\列表
 	游戏列表添加()
 
 \操作\设置路径

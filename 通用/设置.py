@@ -18,7 +18,6 @@ def 渲染设置():
         g = (h & 0x00ff00) >> 8
         b = (h & 0x0000ff)
         return tuple([srgb_to_linearrgb(c / 0xff) for c in (r, g, b)])
-    # 检查Blender版本是否小于4.2（只比较主版本和次版本）
     if bpy.app.version[:2] < (4, 2):
         bpy.context.scene.eevee.use_bloom = True  # 开启辉光
         bpy.context.scene.eevee.bloom_intensity = 0.08  # 辉光强度
@@ -27,3 +26,7 @@ def 渲染设置():
     # bpy.context.scene.render.engine = 'Eevee'
     bpy.context.scene.view_settings.view_transform = 'Filmic'
     bpy.context.scene.view_settings.look = 'High Contrast'
+    bpy.context.space_data.shading.type = 'RENDERED'
+    if "goo" in bpy.app.version_string.lower():  # 1.1.0如果是goo blender
+        bpy.context.scene.eevee.use_ssr = True  # 开启屏幕空间反射
+        bpy.context.scene.eevee.use_ssr_refraction = True  # 开启折射

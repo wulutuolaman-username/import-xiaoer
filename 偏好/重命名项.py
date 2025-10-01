@@ -1,9 +1,9 @@
 from bpy.props import BoolProperty
 
-class RenameAssets:
+class XiaoerAddonRenameAssets:
     重命名资产: BoolProperty(
         name="重命名资产",
-        description="建议在连续导入时开启,开启后可以对材质、节点组、贴图、驱动物体等对象的名称添加角色名重命名,以防止混淆，并放在单独的集合",
+        description="建议在连续导入预设时开启,开启后可以对材质、节点组、贴图、驱动物体等对象的名称添加角色名重命名,以防止混淆，并放在单独的集合",
         default=False
     )
 
@@ -15,7 +15,7 @@ class RenameAssets:
 
     重命名材质: BoolProperty(
         name="材质",
-        description="",
+        description="FBX模型、长名称模型和长名称材质不要开启重命名材质",
         default=True
     )  # 1.0.4新增
 
@@ -55,12 +55,12 @@ class RenameAssets:
         default=True
     )  # 1.0.4新增
 
-    def 重命名可选项(self,layout):
+    def 重命名项(self, layout):
         列 = layout.column(align=True)  # 1.0.4新增
         行 = 列.row(align=True)
         分割 = 行.split(factor=0.3)
         左侧 = 分割.column()  # 分割行，左侧占30%宽度
-        左侧.prop(self, "重命名资产", text="重命名资产可选项： ", icon='ASSET_MANAGER')
+        左侧.prop(self, "重命名资产", text="导入预设重命名选项： ", icon='RESTRICT_SELECT_OFF')
         左侧.scale_y = 2
         右侧 = 分割.column()  # 右侧子行
         右侧.enabled = self.重命名资产

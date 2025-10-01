@@ -38,3 +38,20 @@ class XiaoerAplayboxOpenWebsite(OpenWebsite):
     bl_label = ""
     bl_description = "点击前往小二模之屋主页获取预设"
     url: bpy.props.StringProperty(default="https://www.aplaybox.com/u/872092888")
+
+class WulutuolamanTiktokOpenWebsite(OpenWebsite):
+    bl_idname = "wulutuolaman.open_website_tiktok"
+    bl_label = ""
+    bl_description = "点击前往插件作者抖音主页反馈插件信息"
+    url: bpy.props.StringProperty(default="https://www.douyin.com/user/MS4wLjABAAAAFquoHuLepdMMZ42a9DF96CSYclTKxd3zFkQrP9yl8GSZU6LOxrhanY-pLE_ESDqN?from_tab_name=main&vid=7522913200401075482")
+class WulutuolamanBilibiliOpenWebsite(OpenWebsite):
+    bl_idname = "wulutuolaman.open_website_bilibili"
+    bl_label = ""
+    bl_description = "点击前往插件作者B站主页反馈插件信息"
+    url: bpy.props.StringProperty(default="https://space.bilibili.com/230130803?spm_id_from=333.1007.0.0")
+
+class TemplateExampleOpenWebsite(OpenWebsite):
+    bl_idname = "wulutuolaman.open_website_template_example"
+    bl_label = ""
+    bl_description = "查看预设模板示范，可参考设置"
+    url: bpy.props.StringProperty(default="https://www.douyin.com/user/self?modal_id=7526943600450620682")
