@@ -188,7 +188,7 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                     #     预设材质.name += "_" + 角色  # 网格材质重命名
                     break
     # 替换MMD变形材质
-    if 模型.parent and 模型.parent.parent and 模型.parent.parent.mmd_root:
+    if 模型.parent and 模型.parent.parent and hasattr(模型.parent.parent, "mmd_root"):  # 1.1.1blender4.0似乎没有对应的mmd_tools插件
         if 模型.parent.parent.mmd_root.material_morphs:
             for 变形 in 模型.parent.parent.mmd_root.material_morphs:
                 for 数据 in 变形.data:
@@ -256,7 +256,37 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                         if 后缀:
                             节点组 = bpy.data.node_groups.get(名称)
                             if 节点组:
+                                # 1.1.1blender4.1出现替换MMD节点组后断连、输入参数重置
+                                # 首先记录替换前的连接、输入参数
+                                输入参数 = {}
+                                输入连接 = {}
+                                输出连接 = {}
+                                输入数量 = len(节点.inputs)
+                                输出数量 = len(节点.outputs)
+                                if 输入数量 > 0:
+                                    for i, 输入 in enumerate(节点.inputs):
+                                        if 输入.is_linked:
+                                            输入连接[i] = 输入.links[0].from_socket
+                                        if 输入.bl_idname != "NodeSocketVirtual":
+                                            输入参数[i] = 输入.default_value
+                                if 输出数量 > 0:
+                                    for i, 输出 in enumerate(节点.outputs):
+                                        if 输出.is_linked:
+                                            输出连接[i] = set()
+                                            for 连接 in 输出.links:
+                                                输出连接[i].add(连接.to_socket)
+                                # 替换节点组
                                 节点.node_tree = 节点组
+                                # 如果连接断开，再恢复连接和输入参数
+                                if 输入数量 > 0:
+                                    for i in 输入参数:
+                                        节点.inputs[i].default_value = 输入参数[i]
+                                    for i in 输入连接:
+                                        材质.node_tree.links.new(输入连接[i], 节点.inputs[i])
+                                if 输出数量 > 0:
+                                    for i in 输出连接:
+                                        for 接口 in 输出连接[i]:
+                                            材质.node_tree.links.new(节点.outputs[i], 接口)
                             else:
                                 节点.node_tree.name = 名称
                 小二预设节点属性(节点, 文件路径, 角色)
@@ -331,7 +361,7 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
             if not 骨架.小二预设模型.导入完成:
                 骨架.小二预设模型.导入完成 = True
                 for 模型 in 骨架.children:  # 1.1.0fbx模型分离
-                    if 模型.type == 'MESH' and 模型.mmd_type != 'RIGID_BODY':  # 排除面部定位和刚体
+                    if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
                         炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源, 重命名=False)
                     elif 模型.children:
                         for 物体 in 模型.children:

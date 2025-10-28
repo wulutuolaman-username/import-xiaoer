@@ -14,7 +14,7 @@ class NodeGroupPanel(bpy.types.Panel):
         #     for 节点组 in bpy.data.node_groups:
         #         if 节点组.name == 节点树.name:
         #             return 节点树.小二预设节点树.使用插件
-        return 节点树 and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
+        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY'] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
 
     def draw(self, context):
         layout = self.layout
@@ -44,7 +44,7 @@ class TemplateNodeGroupPanel(bpy.types.Panel):
         #     for 节点组 in bpy.data.node_groups:
         #         if 节点组.name == 节点树.name:
         #             return 节点树.小二预设模板.使用插件
-        return 节点树 and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
+        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY'] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
 
     def draw(self, context):
         layout = self.layout

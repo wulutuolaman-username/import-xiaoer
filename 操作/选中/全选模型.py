@@ -20,8 +20,11 @@ class SelectAllMeshes(bpy.types.Operator):
             if 骨架.type == 'ARMATURE':
                 for 模型 in 骨架.children:
                     if 模型.type == 'MESH' and 模型.data.shape_keys: #1.1.0增加形态键判断
-                        模型.select = True
-                        # 模型.select_set(True)  # 推荐使用新 API
+                        # 1.1.1检查Blender版本是否小于4.0
+                        if bpy.app.version[0] < 4:
+                            模型.select = True
+                        else:
+                            模型.select_set(True)
                         context.view_layer.objects.active = 模型  # ✅ 设置为激活对象
                         self.report({"INFO"}, f'已选中 {模型.name}')
                     elif 模型.type != 'MESH':

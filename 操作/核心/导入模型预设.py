@@ -1,12 +1,10 @@
-import bpy
-import os
-import traceback
+import os, bpy, traceback
 from bpy.props import CollectionProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper
-# from ...通用.查找 import 查找预设
 from ...查找.查找预设 import 查找预设
 from ...核心.导入模型预设 import 炒飞小二
 from ...通用.清理 import 清理MMD刚体材质
+from ...偏好.获取偏好 import 获取偏好
 
 class ImportMatPresets(bpy.types.Operator):
     """ 自动导入所有模型预设 """
@@ -26,7 +24,7 @@ class ImportMatPresets(bpy.types.Operator):
         return context.object is not None and context.object.type == 'MESH' and context.mode == 'OBJECT'
 
     def execute(self, context):
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         if 偏好.预设目录:
             if os.path.exists(偏好.预设目录):
                 模型列表 = []
@@ -83,7 +81,7 @@ class ImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
         return context.object is not None and context.object.type == 'MESH' and context.mode == 'OBJECT' and len(context.selected_objects) == 1
 
     def execute(self, context):
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         文件路径 = self.filepath  # 手动选择的文件路径
         角色 = os.path.splitext(os.path.basename(文件路径))[0]  # 获取文件名（去掉路径和扩展名）
         角色 = 角色.replace("渲染", "")  # 去掉“渲染”字样（如果有）

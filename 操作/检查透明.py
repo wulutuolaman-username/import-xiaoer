@@ -1,6 +1,4 @@
-import os
-import bpy
-import numpy as np
+import os, bpy, numpy as np
 from collections import defaultdict
 from ..材质.检测透明.检测透明 import 通过UV和像素检测透明材质
 from ..材质.检测透明.材质面 import 获取材质面
@@ -8,6 +6,7 @@ from ..材质.检测透明.判断透明 import 判断透明
 from ..着色.贴图.基础贴图 import 筛选贴图
 from ..着色.贴图.空白贴图 import 获取空白贴图
 from ..图像.像素处理 import 检查透明
+from ..偏好.获取偏好 import 获取偏好
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
@@ -36,7 +35,7 @@ class XiaoerAddonCheckTransparent(bpy.types.Operator):
         # # self.report({"ERROR_INVALID_INPUT"}, 'ERROR_INVALID_INPUT')
         # # self.report({"ERROR_INVALID_CONTEXT"}, 'ERROR_INVALID_CONTEXT')
         # # self.report({"ERROR_OUT_OF_MEMORY"}, 'ERROR_OUT_OF_MEMORY')
-        偏好 = bpy.context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         模型 = context.active_object
         材质面 = 获取材质面(self, 偏好, 模型)
         材质 = 模型.active_material

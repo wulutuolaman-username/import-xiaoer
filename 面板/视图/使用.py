@@ -1,5 +1,5 @@
-import bpy
-import os
+import os, bpy
+from ...偏好.获取偏好 import 获取偏好
 
 class ImportMatPresetsUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
@@ -11,7 +11,7 @@ class ImportMatPresetsUI(bpy.types.Panel):
     # 定义一个绘制函数
     def draw(self, context):
 
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
 
         行 = self.layout.row(align=True)
         # 行.label(text="记得写借物表！", icon='ERROR')
@@ -36,7 +36,7 @@ class ImportMatPresetsUI(bpy.types.Panel):
                 # 深度检测icon='SCRIPTPLUGINS'
             elif not 偏好.预设目录:
                 行.label(text=f"偏好未设置预设目录", icon='ERROR')
-            elif not os.path.exists(偏好.预设目录):
+            elif not os.path.exists(偏好.预设目录):  # 1.1.1 elif
                 行.label(text=f"无效路径{偏好.预设目录}", icon='ERROR')
 
         # # 默认姿态开关

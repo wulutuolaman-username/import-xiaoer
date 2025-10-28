@@ -1,10 +1,10 @@
 import os, bpy, traceback
 from bpy.props import StringProperty
 from ...核心.加载预设模板 import 干翻小二
-# from ...通用.查找 import 查找贴图
 from ...查找.查找贴图 import 查找贴图
 from ...通用.改名 import 模型名称处理
 from ...通用.路径 import 获取模型路径
+from ...偏好.获取偏好 import 获取偏好
 
 class ExecuteTemplate(bpy.types.Operator):
     """ 只选中一个模型，选择游戏加载预设模板，设置描边材质，连接节点组 """
@@ -36,7 +36,7 @@ class ExecuteTemplate(bpy.types.Operator):
 
     def execute(self, context):
         模型 = bpy.context.active_object
-        偏好 = bpy.context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         选项 = 偏好.游戏列表[偏好.当前列表选项索引]
         游戏 = 选项.名称.replace("：", "")  # 属性名称不支持冒号
         文件 = True
@@ -121,7 +121,7 @@ class ExecuteTemplate(bpy.types.Operator):
                             骨架.小二预设模板.加载完成 = True
                             for 模型 in 骨架.children:
                                 # self.report({"INFO"}, f"{骨架.name} 当前子级 {模型.name} {datetime.datetime.now()}")
-                                if 模型.type == 'MESH' and 模型.mmd_type != 'RIGID_BODY':  # 排除面部定位和刚体
+                                if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
                                     # self.report({"INFO"}, f"{骨架.name} 子级网格 {模型.name} {datetime.datetime.now()}")
                                     干翻小二(self, 偏好, 模型, 游戏, 角色, 文件路径, 贴图路径)
                                 elif 模型.children:

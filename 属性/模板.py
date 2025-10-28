@@ -1,5 +1,5 @@
-import bpy
-import datetime
+import bpy, datetime
+from ..偏好.获取偏好 import 获取偏好
 
 class XiaoerAddonPresetsTemplateInformation(bpy.types.PropertyGroup):
     """ 小二插件模型预设模板信息 """
@@ -93,7 +93,7 @@ def 小二预设模板属性(属性, 贴图路径, 文件路径, 游戏, 角色)
         属性.使用插件 = True
         属性["文件路径"] = str(模型.小二预设模板.文件)
         属性["贴图路径"] = str(模型.小二预设模板.贴图)
-        偏好 = bpy.context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         属性["游戏名称"] = 偏好.游戏列表[偏好.当前列表选项索引].名称
         属性["角色名称"] = 模型.小二预设模板.角色
     else:

@@ -1,7 +1,7 @@
-import bpy
-import os
+import os, bpy
 from ...通用.改名 import 模型名称处理
 from ...通用.路径 import 获取模型路径
+from ...偏好.获取偏好 import 获取偏好
 
 class ExecuteTemplateUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
@@ -12,12 +12,12 @@ class ExecuteTemplateUI(bpy.types.Panel):
 
     @classmethod  # 1.0.3新增
     def poll(cls, context):
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         return 偏好.开启制作预设
 
     # 定义一个绘制函数
     def draw(self, context):
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         选项 = 偏好.游戏列表[偏好.当前列表选项索引]
         游戏 = 选项.名称
 

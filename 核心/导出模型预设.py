@@ -14,7 +14,7 @@ def 透透小二(self, 模型, 保存路径):
             if 骨架.小二预设模型.导入完成:
                 骨架.小二预设模型.导入完成 = False
             for 物体 in 骨架.children:
-                if 模型.type == 'MESH'  and 模型.mmd_type != 'RIGID_BODY':  # 排除面部定位和刚体
+                if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
                     保护.add(物体)
                 elif 模型.children:
                     for 物体 in 模型.children:

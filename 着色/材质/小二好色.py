@@ -140,7 +140,7 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
                             if 骨架 not in 完成递归:
                                 完成递归.add(骨架)
                                 for 网格 in 骨架.children:
-                                    if 网格.type == 'MESH' and 网格.mmd_type != 'RIGID_BODY':  # 排除面部定位和刚体
+                                    if 网格.type == 'MESH' and not 网格.rigid_body:  # 排除面部定位和刚体
                                         if 网格.小二预设模板.导入贴图:
                                             # 报告信息(self, '正常', f'{网格.name}')
                                             记录次数 += 1

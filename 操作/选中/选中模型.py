@@ -23,8 +23,11 @@ class SelectModel(bpy.types.Operator):
                         if 模型.小二预设模型.导入完成:
                             self.report({"INFO"}, f'{模型.name}已导入预设，如需选中，在物体属性面板取消导入完成状态')
                             continue
-                        模型.select = True
-                        # 模型.select_set(True)  # 推荐使用新 API
+                        # 1.1.1检查Blender版本是否小于4.0
+                        if bpy.app.version[0] < 4:
+                            模型.select = True
+                        else:
+                            模型.select_set(True)                        # 模型.select_set(True)  # 推荐使用新 API
                         context.view_layer.objects.active = 模型  # ✅ 设置为激活对象
                         self.report({"INFO"}, f'已选中 {模型.name}')
                         return {'FINISHED'}  # ✅ 必须是 set 类型！

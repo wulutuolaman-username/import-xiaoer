@@ -30,7 +30,7 @@ def 判断透明(self, 材质, 图像, 面像素点, 透明像素点, 完全透�
             return True
         self.report({"INFO"}, f'材质Material["{材质.name}"]完全透明占比{完全透明占比}不小于{完全透明阈值}，非透明材质')
     elif not 透明像素点 & 面像素点:
-        self.report({"INFO"},f'材质Material["{材质.name}"]无透明像素，非透明材质')
+        self.report({"INFO"}, f'材质Material["{材质.name}"]无透明像素，非透明材质')
     elif 面像素点 < 完全透明像素点:
         self.report({"INFO"}, f'材质Material["{材质.name}"]全部处于透明区域内，非透明材质')
     return False

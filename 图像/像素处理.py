@@ -1,6 +1,5 @@
 import bpy
 import numpy as np
-import time
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
     from PIL import Image

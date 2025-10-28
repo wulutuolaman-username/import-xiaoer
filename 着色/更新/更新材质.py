@@ -1,4 +1,4 @@
-import bpy
+from ...偏好.获取偏好 import 获取偏好
 from ...材质.材质分类 import 材质分类
 from ...着色.材质.脸部着色 import 脸部着色
 from ...着色.材质.五官着色 import 五官着色
@@ -10,13 +10,13 @@ from .清理节点 import 清理无用节点
 def 更新材质(self, context):
     if self.材质分类 and self.更新分类 and self.材质分类 != self.更新分类:
         # bpy.ops.import_xiaoer.update_material_shader()
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         游戏 = 偏好.游戏列表[偏好.当前列表选项索引].名称
         模型 = context.active_object
         if 模型.type == 'MESH':
             节点组列表 = []
-            if context.active_object and context.active_object.active_material:
-                材质 = context.active_object.active_material
+            if 模型 and 模型.active_material:
+                材质 = 模型.active_material
                 # print(f'\n更新材质{材质.name} 为{self.材质分类}材质')
                 材质.小二预设模板.混合模式 = 材质.blend_method
                 材质.小二预设模板.显示背面 = 材质.show_transparent_back

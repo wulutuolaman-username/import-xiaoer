@@ -12,7 +12,7 @@ def 获取材质(模型):
             if 骨架 not in 完成递归:
                 完成递归.add(骨架)
                 for 网格 in 骨架.children:
-                    if 网格.type == 'MESH' and 网格.mmd_type != 'RIGID_BODY':  # 排除面部定位和刚体
+                    if 网格.type == 'MESH' and not 网格.rigid_body:  # 排除面部定位和刚体
                         添加材质(网格)
                     elif 网格.children:
                         for 物体 in 网格.children:

@@ -16,7 +16,7 @@ class MaterialNodeTreePanel(bpy.types.Panel):
         #             return False
         #     return 节点树.小二预设节点树.使用插件
         # return False
-        return 节点树 and 节点树.小二预设节点树.使用插件 and not 节点树.name in bpy.data.node_groups
+        return 节点树 and 节点树.type == 'SHADER' and 节点树.小二预设节点树.使用插件 and not 节点树.name in bpy.data.node_groups
 
     def draw(self, context):
         layout = self.layout
@@ -48,7 +48,7 @@ class TemplateMaterialNodeTreePanel(bpy.types.Panel):
         #             return False
         #     return 节点树.小二预设节点树.使用插件
         # return False
-        return 节点树 and 节点树.小二预设模板.使用插件 and not 节点树.name in bpy.data.node_groups
+        return 节点树 and 节点树.type == 'SHADER' and 节点树.小二预设模板.使用插件 and not 节点树.name in bpy.data.node_groups
 
     def draw(self, context):
         layout = self.layout

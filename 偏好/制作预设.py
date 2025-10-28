@@ -3,6 +3,7 @@ from bpy.props import BoolProperty, StringProperty, CollectionProperty, IntPrope
 from .更新状态 import 更新基础贴图alpha连接, 更新通过点乘混合法向
 from ..列表 import GameTemplateItem
 from ..图标 import 加载图标
+from ..偏好.获取偏好 import 获取偏好
 
 图标预览 = 加载图标()
 
@@ -117,7 +118,7 @@ class XiaoerAddonOpenMakingAssets:
     # 1.1.0检测透明材质
     检测透明材质: BoolProperty(
         name="检测透明材质",
-        description="默认只通过MMD的alpha（<1）判断透明。开启后进一步检测五官、头发、皮肤、衣服之中可能透明的材质的UV区域是否包含了贴图的透明像素(alpha<1)，如有则混合透明着色、混合材质模式。需要注意的是基础贴图的alpha通道不一定用于透明，也可能用于调整亮度。",
+        description="默认只通过MMD的alpha（<1）判断透明。开启后进一步检测五官、头发、皮肤、衣服之中可能透明的材质的UV区域是否包含了贴图的透明像素(alpha<1)，如有则混合透明着色。需要注意的是基础贴图的alpha通道不一定用于透明，也可能用于调整亮度。",
         default=False
     )
     检测透明分辨率: IntProperty(
@@ -126,13 +127,13 @@ class XiaoerAddonOpenMakingAssets:
     )
     射线法检测透明: BoolProperty(
         name="射线法检测透明",
-        description="使用射线法判断透明像素中心是否在材质面UV区域内。检测速度较快, 但是个别面可能检测不准确。建议对模型整体检测时使用。",
+        description="使用射线法判断透明像素中心是否在材质面UV区域内。检测速度较快, 对单个材质检测结果与面积法基本相同，但是个别面可能检测不如面积法准确。建议对模型整体检测时使用。",
         default=True,
         update = lambda self, context: self.更新状态(context, '射线法检测透明', ['面积法检测透明'])
     )
     面积法检测透明: BoolProperty(
         name="面积法检测透明",
-        description="使用面积法判断透明像素和材质面UV是否相交。检测速度较慢, 对材质面UV的像素检测更加准确。建议对单个材质检测时使用。",
+        description="使用面积法断透明像素和材质面UV是否相交。检测速度较慢, 对单个材质检测结果与射线法基本相同, 对材质面UV的像素区域检测更加准确。建议对单个材质检测时使用。",
         default=False,
         update=lambda self, context: self.更新状态(context, '面积法检测透明', ['射线法检测透明'])
     )
@@ -167,7 +168,7 @@ class XiaoerAddonOpenMakingAssets:
     绝区零模板路径: StringProperty(name="绝区零模板路径", description="设置绝区零模板文件路径")
     鸣潮模板路径: StringProperty(name="鸣潮模板路径", description="设置鸣潮模板文件路径")
 
-    def 开启制作(self,layout):
+    def 开启制作(self, layout):
         行 = layout.row()  # 1.0.3新增
         列 = 行.column()
         列.prop(self, "开启制作预设", text="  开启制作预设面板 需自备贴图和预设模板")
@@ -194,13 +195,13 @@ class XiaoerAddonOpenMakingAssets:
             # 行.label(text="如果基础贴图和其他贴图名称不一致（如新版丝柯克的头发贴图），需要手动修改贴图名称", icon='ERROR')
 
             # 模板路径设置
-            def 设置模板路径(游戏,操作):
+            def 设置模板路径(游戏, 操作):
                 行 = layout.row(align=True)  # 关键点：align=True 确保子元素对齐
                 左侧 = 行.split(factor=0.1)  # 分割行，左侧占10%宽度
                 左侧.template_icon(icon_value=图标预览[游戏].icon_id, scale=2)  # 图标放在左侧
                 右侧 = 左侧.column(align=True)  # 右侧子行
                 路径 = f'{游戏.replace("：", "")}模板路径'  # 崩坏：星穹铁道变量名不能有冒号
-                右侧.prop(bpy.context.preferences.addons["导入小二"].preferences, 路径, text=游戏, icon='BLENDER')
+                右侧.prop(获取偏好(), 路径, text=游戏, icon='BLENDER')
                 键 = 右侧.operator(操作, icon='BLENDER')
                 键.属性 = 路径  # 将路径属性名传递给操作符
             设置模板路径("崩坏三", "xiaoer.set_honkai3_path")

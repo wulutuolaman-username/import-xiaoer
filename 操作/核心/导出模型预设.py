@@ -1,10 +1,9 @@
-import os
-import bpy
-import traceback
+import os, bpy, traceback
 from bpy.props import StringProperty
 from bpy_extras.io_utils import ExportHelper
 from ...核心.导出模型预设 import 透透小二
 from ...通用.改名 import 模型名称处理
+from ...偏好.获取偏好 import 获取偏好
 
 class ExportMatPresets(bpy.types.Operator, ExportHelper):
     """ 选择一个模型导出预设 """
@@ -27,7 +26,7 @@ class ExportMatPresets(bpy.types.Operator, ExportHelper):
     # 动态设置默认路径和文件名
     def invoke(self, context, event):
         # 获取用户预设路径
-        偏好 = context.preferences.addons["导入小二"].preferences
+        偏好 = 获取偏好()
         if 偏好.预设目录:
             self.filepath = os.path.join(
                 偏好.预设目录,  # 从偏好设置获取路径

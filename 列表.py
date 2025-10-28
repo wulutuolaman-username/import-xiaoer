@@ -1,5 +1,6 @@
 import bpy
 from bpy.props import StringProperty
+from .偏好.获取偏好 import 获取偏好
 from .图标 import 加载图标
 图标预览 = 加载图标()
 
@@ -23,7 +24,7 @@ class GAME_UL_TemplateList(bpy.types.UIList):
             行.label(text=item.名称, icon_value=icon_id)
 
 def 游戏列表添加(游戏):
-    偏好 = bpy.context.preferences.addons["导入小二"].preferences
+    偏好 = 获取偏好()
     for 选项 in 偏好.游戏列表:
         if 选项.名称 == 游戏:
             return
