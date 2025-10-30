@@ -2,7 +2,7 @@
 
 [视频教程](https://www.douyin.com/user/self?from_tab_name=main&modal_id=7556371923551145225)  
 
-[可定制Blender一键渲染插件](https://github.com/wulutuolaman-username/import-xiaoer/blob/main/%E5%AE%9A%E5%88%B6.md)
+# [可定制Blender一键渲染插件](https://github.com/wulutuolaman-username/import-xiaoer/blob/main/%E5%AE%9A%E5%88%B6.md)
 
 ### 一、使用预设
 1. 基础功能完善，导入预设后不会再出现大量图像、节点组的副本，面部定位不会出现X旋转-90°。可以导入FBX模型的预设。
