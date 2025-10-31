@@ -1,6 +1,6 @@
 如果模块安装失败，请到模之屋下载[本地安装版](https://www.aplaybox.com/details/model/j8uwC55rjW4G)
 
-[视频教程](https://www.douyin.com/user/self?from_tab_name=main&modal_id=7556371923551145225)  
+插件使用[视频教程](https://www.douyin.com/user/self?from_tab_name=main&modal_id=7556371923551145225)  
 
 # [可定制Blender一键渲染插件](https://github.com/wulutuolaman-username/import-xiaoer/blob/main/%E5%AE%9A%E5%88%B6.md)
 
@@ -10,9 +10,9 @@
 2. 如果在偏好设置了包含所有预设文件的预设目录，并且开启了自动查找预设开关，那么代码将会根据预设文件名和模型名称进行匹配，深度检索功能具有更强大的查找预设能力。
     <img width="199" height="22" alt="image" src="https://github.com/user-attachments/assets/5550a316-68a0-492a-8183-a44d2f134a0b" />
 
-   如果按下按钮没有反应，你需要检查：
-   (1).是否在偏好设置了预设目录
-   (2).预设文件是否在预设目录内
+   如果按下按钮没有反应，你需要检查：  
+   (1).是否在偏好设置了预设目录  
+   (2).预设文件是否在预设目录内  
    (3).预设文件名称和模型名称是否对的上（例如茜特菈莉的模型错了一个字），需要修改名称以匹配，或开启深度检索
 
    ![image](https://github.com/user-attachments/assets/9d73da1b-0d19-48b8-89be-6f282386d39a)![image](https://github.com/user-attachments/assets/257520f0-2710-40aa-bf40-760cd8b4f951)
