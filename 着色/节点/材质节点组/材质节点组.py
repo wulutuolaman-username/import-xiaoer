@@ -1,18 +1,20 @@
-from ....属性.模板 import 小二预设模板属性
+import bpy
+from ....属性.属性 import 小二预设模板属性
+from ....指针 import XiaoerMaterial, XiaoerNode
 
 名称 = "小二插件：材质节点组"
 
-def 搜索材质节点组(材质):
+def 搜索材质节点组(材质:XiaoerMaterial) -> XiaoerNode:
     材质节点组 = 材质.node_tree.nodes.get(名称, None)
     return 材质节点组
 
-def 设置材质节点组(材质, 节点组, 材质节点组):
+def 设置材质节点组(self:bpy.types.Operator, 材质:XiaoerMaterial, 节点组, 材质节点组):
     材质节点组.node_tree = 节点组  # 应用材质节点组
     材质节点组.location = (-200, 1500)  # 定位材质节点组
     材质节点组.name = 名称
-    print(f'材质Material["{材质.name}"]输入节点组{节点组.name}')
+    self.report({"INFO"}, f'材质Material["{材质.name}"]输入节点组["{节点组.name}"]')
 
-def 获取材质节点组(游戏, 节点组列表, 材质, 小二材质类型):
+def 获取材质节点组(self:bpy.types.Operator, 游戏, 节点组列表, 材质:XiaoerMaterial, 小二材质类型) -> XiaoerNode:
     材质节点组 = 搜索材质节点组(材质)
     if not 材质节点组:
         材质节点组 = 材质.node_tree.nodes.new(type='ShaderNodeGroup')  # 新建节点组
@@ -23,7 +25,7 @@ def 获取材质节点组(游戏, 节点组列表, 材质, 小二材质类型):
                     (小二材质类型 in 节点组.name and "小二" in 节点组.name)
             ):
                 # self.report({"INFO"}, f'材质Material["{材质.name}"]材质节点组ShaderNodeGroup["{节点组.name}"]')
-                设置材质节点组(材质, 节点组, 材质节点组)
+                设置材质节点组(self, 材质, 节点组, 材质节点组)
                 break  # 找到后立即退出循环，提高效率
     小二预设模板属性(材质节点组.小二预设模板, None, None, None, None)
     return 材质节点组

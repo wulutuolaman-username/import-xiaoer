@@ -1,8 +1,10 @@
 # coding: utf-8
+import bpy
 from .打包材质 import 布尔节点
 from ..通用.信息 import 报告信息
+from ..指针 import XiaoerNode
 
-def 跳过转接点找到相连节点(节点):
+def 跳过转接点找到相连节点(节点) -> bpy.types.Node | bpy.types.NodeGroup:
     """ 递归追踪转接节点（Reroute），返回最终连接的节点 """
     if 节点.type == 'REROUTE':
         if 节点.inputs and 节点.inputs[0].is_linked:
@@ -11,7 +13,7 @@ def 跳过转接点找到相连节点(节点):
     return 节点
 
 # 分类设置描边材质
-def 输入材质(self, 节点, 材质类):
+def 输入材质(self, 节点:XiaoerNode, 材质类):
     材质去重 = set()
     for 材质 in 材质类:
         if 材质 in 材质去重:
@@ -20,7 +22,7 @@ def 输入材质(self, 节点, 材质类):
             材质去重.add(材质)
     global 材质节点
     接口类 = []  # 建立列表存储需要连接的接口
-    for 输入 in 节点.inputs:
+    for 输入 in 节点.inputs:  # type: bpy.types.NodeSocket
         if 输入.type == 'BOOLEAN' and 输入.is_linked:  # 设置材质节点的布尔接口
             # self.report({"INFO"}, f"布尔接口:" + str(输入))
             for 连接 in 输入.links:
@@ -34,7 +36,7 @@ def 输入材质(self, 节点, 材质类):
                             接口类.append(接口)
                     # self.report({"INFO"}, f"接口:" + str(接口))
                     if len(材质类) > len(接口类):
-                        布尔节点(self, 相连节点, 材质类[len(接口类):], (材质节点.location.x, 材质节点.location.y))
+                        布尔节点(self, 相连节点, 材质类[len(接口类):], 材质节点.location)
                     break
     # 使用 zip 将材质和接口一一对应
     for 材质, 接口 in zip(材质类, 接口类):

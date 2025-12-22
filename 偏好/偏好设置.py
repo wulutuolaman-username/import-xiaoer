@@ -11,11 +11,10 @@ class XiaoerAddonPreferences(bpy.types.AddonPreferences,
                              XiaoerAddonRenameAssets,
                              XiaoerAddonOpenMakingAssets,
                              ):
-    bl_idname = "导入小二"
 
     def draw(self, context):  # 仅在偏好设置显示路径设置
-        layout = self.layout
-        self.更新面板(layout)
-        self.设置目录(layout)
-        self.重命名项(layout)
-        self.开启制作(layout)
+        布局 = self.layout
+        self.更新面板(布局)
+        self.设置目录(布局)
+        self.重命名项(布局)
+        self.开启制作(布局)

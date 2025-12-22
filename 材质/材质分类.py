@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from .获取材质 import 获取材质
+from ..指针 import XiaoerMaterial
 
 # 1.0.2增加"袖"，英文全部小写
 # 1.0.3增加"声痕"、"body"、"发卡"
@@ -23,27 +24,6 @@ def 材质分类(模型, 材质集合=None):
     # 1.1.0fbx模型分离
     if not 材质集合:
         材质集合 = 获取材质(模型)
-        # 材质集合 = set()
-        # def 添加材质(模型):
-        #     for 材质 in 模型.data.materials:
-        #         材质集合.add(材质)
-        # # 添加材质(模型)
-        # 完成递归 = set()
-        # 骨架 = 模型.parent
-        # # if 骨架 and 骨架.type == 'ARMATURE' and len([网格 for 网格 in 骨架.children if 网格.type == 'MESH']) > 1:
-        # if 骨架:
-        #     def 递归(骨架):
-        #         if 骨架 not in 完成递归:
-        #             完成递归.add(骨架)
-        #             for 网格 in 骨架.children:
-        #                 if 网格.type == 'MESH':  # 面部定位
-        #                     添加材质(网格)
-        #                 elif 网格.children:
-        #                     for 物体 in 网格.children:
-        #                         递归(物体)
-        #             if 骨架.parent:
-        #                 递归(骨架.parent)
-        #     递归(骨架)
 
     脸 = next((材质 for 材质 in 材质集合 if any(关键词 in 材质.name or 关键词 in 材质.name.lower() for 关键词 in 脸部关键词)), None)  # 1.0.3更新大小写匹配
 
@@ -57,6 +37,7 @@ def 材质分类(模型, 材质集合=None):
     透明材质 = []  # 1.0.9检测透明材质  # 1.1.0改进为UV像素检测
 
     for 材质 in 材质集合:
+        材质: XiaoerMaterial
         if 材质.小二预设模板.透明材质:
             透明材质.append(材质)
         if 材质.小二预设模板.材质分类:

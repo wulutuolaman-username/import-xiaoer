@@ -1,4 +1,6 @@
 import bpy
+from typing import cast
+from ...指针 import XiaoerObject
 
 class ModelObjectPanel(bpy.types.Panel):
     bl_idname = 'OBJECT_PT_import_xiaoer_model_object_1'
@@ -9,15 +11,15 @@ class ModelObjectPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and context.active_object.小二预设模型.使用插件
+        物体 = cast(XiaoerObject, context.active_object)
+        return 物体 and 物体.小二预设模型.使用插件
 
     def draw(self, context):
-        layout = self.layout
-        物体 = context.active_object
-
+        布局 = self.layout
+        物体 = cast(XiaoerObject, context.active_object)
         属性 = 物体.小二预设模型
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         if 物体.type == 'MESH':
@@ -36,15 +38,15 @@ class TemplateObjectPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and (context.active_object.小二预设模板.使用插件 or context.active_object.小二预设模板.加载完成)
+        物体 = cast(XiaoerObject, context.active_object)
+        return 物体 and (物体.小二预设模板.使用插件 or 物体.小二预设模板.加载完成)
 
     def draw(self, context):
-        layout = self.layout
-        物体 = context.active_object
-
+        布局 = self.layout
+        物体 = cast(XiaoerObject, context.active_object)
         属性 = 物体.小二预设模板
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         if 物体.type == 'MESH':

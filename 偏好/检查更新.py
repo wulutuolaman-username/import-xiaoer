@@ -1,22 +1,8 @@
 import bpy
-from bpy.props import EnumProperty
 from ..更新 import AddonUpdaterManager
 
 # 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/preferences.py
-def _get_update_candidate_branches(_, __):
-    updater = AddonUpdaterManager.get_instance()
-    if not updater.candidate_checked():
-        return []
-
-    return [(name, name, "") for name in updater.get_candidate_branch_names()]
-
 class XiaoerAddonCheckUpdate:
-    # for add-on updater
-    updater_branch_to_update: EnumProperty(
-        name='Branch',
-        description='Target branch to update add-on',
-        items=_get_update_candidate_branches
-    )
 
     def 更新面板(self, layout):
         updater = AddonUpdaterManager.get_instance()
@@ -60,10 +46,6 @@ class XiaoerAddonCheckUpdate:
                     icon='TRIA_DOWN_BAR'
                 ).branch_name = updater.latest_version()
 
-                # # 1.0.7查看更新历史
-                # col = row.column()
-                # col.operator("xiaoer.update_history", text="查看更新历史", icon="TIME")
-
                 # 1.0.2增加版本更新说明
                 latest_version = updater.latest_version()
                 latest_body = ""
@@ -89,15 +71,6 @@ class XiaoerAddonCheckUpdate:
             col = row.column()
             col.operator("xiaoer.update_history", text="查看更新历史", icon="TIME")
 
-            # update_col.separator()
-            # update_col.label(text="(Danger) Manual Update:")
-            # row = update_col.row(align=True)
-            # row.prop(self, "updater_branch_to_update", text="Target")
-            # row.operator(
-            #     "xiaoer.update_addon", text="更新",
-            #     icon='TRIA_DOWN_BAR'
-            # ).branch_name = self.updater_branch_to_update
-
             update_col.separator()
             if updater.has_error():
                 box = update_col.box()
@@ -105,4 +78,3 @@ class XiaoerAddonCheckUpdate:
             elif updater.has_info():
                 box = update_col.box()
                 box.label(text=updater.info(), icon='ERROR')
-

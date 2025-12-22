@@ -10,10 +10,10 @@ class XiaoerUI(bpy.types.Panel):
     bl_region_type = 'UI'  # 区域类型:右边侧栏
 
     def draw(self, context):
-        layout = self.layout
+        布局 = self.layout
 
         # 添加按钮
-        行 = layout.row(align=True)
+        行 = 布局.row(align=True)
         行.operator(
             "xiaoer.open_website_bilibili",  # 操作符 ID
             icon_value=图标预览["小二"].icon_id,   # 按钮图标

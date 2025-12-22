@@ -1,5 +1,4 @@
-import bpy, datetime
-from ..偏好.获取偏好 import 获取偏好
+import bpy
 
 class XiaoerAddonPresetsTemplateInformation(bpy.types.PropertyGroup):
     """ 小二插件模型预设模板信息 """
@@ -85,22 +84,3 @@ class XiaoerAddonPresetsTemplateInformation(bpy.types.PropertyGroup):
         description="已禁用:此属性仅供内部使用,无法编辑",
         get=使用版本
     )
-
-def 小二预设模板属性(属性, 贴图路径, 文件路径, 游戏, 角色):
-    from ..__init__ import bl_info
-    模型 = bpy.context.object
-    if 模型.小二预设模板.使用插件:
-        属性.使用插件 = True
-        属性["文件路径"] = str(模型.小二预设模板.文件)
-        属性["贴图路径"] = str(模型.小二预设模板.贴图)
-        偏好 = 获取偏好()
-        属性["游戏名称"] = 偏好.游戏列表[偏好.当前列表选项索引].名称
-        属性["角色名称"] = 模型.小二预设模板.角色
-    else:
-        属性.使用插件 = True
-        属性["文件路径"] = str(文件路径)
-        属性["贴图路径"] = str(贴图路径)
-        属性["游戏名称"] = 游戏
-        属性["角色名称"] = 角色
-    属性["使用时间"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    属性["使用版本"] = ".".join(map(str, bl_info["version"]))

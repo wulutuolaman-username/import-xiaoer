@@ -1,8 +1,11 @@
+import bpy
 from .清理 import 清理贴图
 from .改名 import 重命名贴图
-from ..属性.预设 import 小二预设贴图属性, 小二预设节点属性
+from ..属性.属性 import 小二预设贴图属性, 小二预设节点属性
+from ..偏好.偏好设置 import XiaoerAddonPreferences
+from ..指针 import XiaoerMaterial
 
-def 递归着色节点组(self, 偏好, 数据源, 文件路径, 角色, 节点组):
+def 递归着色节点组(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 数据源, 文件路径, 角色, 节点组):
     if 节点组.node_tree and 节点组.node_tree.type == 'SHADER':
         for 节点 in 节点组.node_tree.nodes:
             if 节点.type == 'TEX_IMAGE':
@@ -17,7 +20,7 @@ def 递归着色节点组(self, 偏好, 数据源, 文件路径, 角色, 节点�
                     递归着色节点组(self, 偏好, 数据源, 文件路径, 角色, 节点)
             小二预设节点属性(节点, 文件路径, 角色)
 
-def 递归几何节点组(self, 偏好, 数据源, 文件路径, 角色, 节点组):
+def 递归几何节点组(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 数据源, 文件路径, 角色, 节点组):
     if 节点组.node_tree and 节点组.node_tree.type == 'GEOMETRY':
         for 节点 in 节点组.node_tree.nodes:
             if 节点.type == 'IMAGE_TEXTURE':
@@ -28,7 +31,7 @@ def 递归几何节点组(self, 偏好, 数据源, 文件路径, 角色, 节点�
                     重命名贴图(偏好, 图像, 节点, 角色, 'GEOMETRY')
                     小二预设贴图属性(图像, 文件路径, 角色)
             if 节点.type == 'MATERIAL_SELECTION':  # 1.1.0清理材质选择节点里的贴图，缇宝预设材质比模型材质多一个飘带+
-                材质 = 节点.inputs[0].default_value
+                材质 = 节点.inputs[0].default_value  # type:XiaoerMaterial
                 if 材质 and not 材质.小二预设材质.使用插件:
                     递归着色节点组(self, 偏好, 数据源, 文件路径, 角色, 材质)
             if 节点.type == 'SET_MATERIAL':  # 1.1.0清理描边材质里的贴图

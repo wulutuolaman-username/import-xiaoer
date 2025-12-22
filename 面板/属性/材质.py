@@ -1,4 +1,6 @@
 import bpy
+from typing import cast
+from ...指针 import XiaoerObject, XiaoerMaterial
 
 class MaterialPanel(bpy.types.Panel):
     bl_idname = 'OBJECT_PT_import_xiaoer_material_1'
@@ -9,15 +11,16 @@ class MaterialPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.material and context.material.小二预设材质.使用插件
+        材质 = cast(XiaoerMaterial, context.material)
+        return 材质 and 材质.小二预设材质.使用插件
 
     def draw(self, context):
-        layout = self.layout
-        材质 = context.material
+        布局 = self.layout
+        材质 = cast(XiaoerMaterial, context.material)
 
         属性 = 材质.小二预设材质
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         列.prop(属性, '文件')
@@ -34,19 +37,21 @@ class TemplateMaterialPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.material and context.material.小二预设模板.使用插件
+        材质 = cast(XiaoerMaterial, context.material)
+        return 材质 and 材质.小二预设模板.使用插件
 
     def draw(self, context):
-        layout = self.layout
-        材质 = context.material
+        布局 = self.layout
+        模型 = cast(XiaoerObject, context.active_object)
+        材质 = cast(XiaoerMaterial, context.material)
 
         属性 = 材质.小二预设模板
 
-        列 = layout.column()
-        列.enabled = not context.active_object.小二预设模板.加载完成
+        列 = 布局.column()
+        列.enabled = not 模型.小二预设模板.加载完成
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
-        if context.active_object.小二预设模板.加载完成:
+        if 模型.小二预设模板.加载完成:
             列.label(text="在模型的物体属性模板",icon='OBJECT_DATA')
             列.label(text="取消加载完成状态",icon='CHECKBOX_HLT')
             列.label(text="可修改材质分类、透明状态",icon='MATERIAL')

@@ -1,7 +1,8 @@
-from ....属性.模板 import 小二预设模板属性
+from ....属性.属性 import 小二预设模板属性
+from ....指针 import XiaoerNode
 
-def 获取透明节点(材质, 名称=''):
-    透明节点 = 材质.node_tree.nodes.get(名称,'')
+def 获取透明节点(材质, 名称='') -> XiaoerNode:
+    透明节点 = 材质.node_tree.nodes.get(名称,'')  # type:XiaoerNode
     if not 透明节点:
         透明节点 = 材质.node_tree.nodes.new(type='ShaderNodeBsdfTransparent')  # 新建透明节点
         透明节点.name = 名称

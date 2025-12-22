@@ -1,4 +1,6 @@
 import bpy
+from typing import cast
+from ...指针 import XiaoerImage
 
 class ImagePanel(bpy.types.Panel):
     bl_idname = 'IMAGE_PT_import_xiaoer_image_1'
@@ -9,15 +11,15 @@ class ImagePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.space_data.image and context.space_data.image.小二预设贴图.使用插件
+        return context.space_data.image and context.space_data.image.小二预设贴图.使用插件  # type:ignore
 
     def draw(self, context):
-        layout = self.layout
-        贴图 = context.space_data.image
+        布局 = self.layout
+        贴图 = cast(XiaoerImage, context.space_data.image)  # type:ignore
 
         属性 = 贴图.小二预设贴图
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         列.prop(属性, '文件')
@@ -34,11 +36,11 @@ class TemplateImagePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.space_data.image and context.space_data.image.小二预设模板.使用插件
+        return context.space_data.image and context.space_data.image.小二预设模板.使用插件  # type:ignore
 
     def draw(self, context):
         layout = self.layout
-        贴图 = context.space_data.image
+        贴图 = cast(XiaoerImage, context.space_data.image)  # type:ignore
 
         属性 = 贴图.小二预设模板
 

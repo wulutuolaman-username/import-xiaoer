@@ -45,14 +45,14 @@ def get_separator():
 
 def _request(url, json_decode=True):
     # pylint: disable=W0212
-    ssl._create_default_https_context = ssl._create_unverified_context
+    ssl._create_default_https_context = ssl._create_unverified_context  # type:ignore
     req = urllib.request.Request(url)
 
     try:
         result = urllib.request.urlopen(req)
-    except urllib.error.HTTPError as e:
+    except urllib.error.HTTPError as e:  # type:ignore
         raise RuntimeError("HTTP error ({})".format(str(e.code)))
-    except urllib.error.URLError as e:
+    except urllib.error.URLError as e:  # type:ignore
         raise RuntimeError("URL error ({})".format(str(e.reason)))
 
     data = result.read()
@@ -71,9 +71,9 @@ def _request(url, json_decode=True):
 def _download(url, path):
     try:
         urllib.request.urlretrieve(url, path)
-    except urllib.error.HTTPError as e:
+    except urllib.error.HTTPError as e:  # type:ignore
         raise RuntimeError("HTTP error ({})".format(str(e.code)))
-    except urllib.error.URLError as e:
+    except urllib.error.URLError as e:  # type:ignore
         raise RuntimeError("URL error ({})".format(str(e.reason)))
 
 

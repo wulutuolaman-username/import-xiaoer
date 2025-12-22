@@ -1,4 +1,5 @@
 import os, bpy, numpy as np
+from typing import cast
 from collections import defaultdict
 from ..材质.检测透明.检测透明 import 通过UV和像素检测透明材质
 from ..材质.检测透明.材质面 import 获取材质面
@@ -7,11 +8,13 @@ from ..着色.贴图.基础贴图 import 筛选贴图
 from ..着色.贴图.空白贴图 import 获取空白贴图
 from ..图像.像素处理 import 检查透明
 from ..偏好.获取偏好 import 获取偏好
+from ..指针 import XiaoerMaterial
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
     from PIL import Image
 except ImportError:
+    Image = None
     pass
 
 class XiaoerAddonCheckTransparent(bpy.types.Operator):
@@ -26,19 +29,10 @@ class XiaoerAddonCheckTransparent(bpy.types.Operator):
         return 模型 and 模型.type == 'MESH' and 模型.active_material
 
     def execute(self, context):
-        # # self.report({"DEBUG"}, 'DEBUG')
-        # self.report({"INFO"}, 'INFO')
-        # self.report({"OPERATOR"}, 'OPERATOR')
-        # self.report({"PROPERTY"}, 'PROPERTY')
-        # self.report({"WARNING"}, 'WARNING')
-        # self.report({"ERROR"}, 'ERROR')
-        # # self.report({"ERROR_INVALID_INPUT"}, 'ERROR_INVALID_INPUT')
-        # # self.report({"ERROR_INVALID_CONTEXT"}, 'ERROR_INVALID_CONTEXT')
-        # # self.report({"ERROR_OUT_OF_MEMORY"}, 'ERROR_OUT_OF_MEMORY')
         偏好 = 获取偏好()
         模型 = context.active_object
         材质面 = 获取材质面(self, 偏好, 模型)
-        材质 = 模型.active_material
+        材质 = cast(XiaoerMaterial, 模型.active_material)
         图像, 节点 = 筛选贴图(self, 材质)
         if not 图像:
             self.report({"ERROR"}, f'材质Material["{材质.name}"]未找到贴图')
@@ -86,7 +80,7 @@ class XiaoerAddonCheckTransparent(bpy.types.Operator):
                 # if 透明占比 < 0.6:
                 for 区域 in bpy.context.screen.areas:
                     if 区域.type == 'VIEW_3D':
-                        区域.spaces.active.shading.type = 'RENDERED'
+                        区域.spaces.active.shading.type = 'RENDERED'  # type:ignore
                     if 区域.type == 'IMAGE_EDITOR':
                         区域.spaces.active.image = 图像
                 # bm = 材质面['bm'][0]
@@ -100,7 +94,7 @@ class XiaoerAddonCheckTransparent(bpy.types.Operator):
                         if 模型.data.materials[面.material_index] is 材质:
                             面.select = True
                         # bm.faces[索引].select = True
-                模型.data.update()
+                # 模型.data.update()
                 # self.report({"INFO"}, f'材质Material["{材质.name}"]\n mesh.polygons:{len(模型.data.polygons)} bm.faces:{len(bm.faces)}')
                 # 回写到 mesh
                 # bpy.ops.object.mode_set(mode='OBJECT')  # 必须切到 OBJECT 模式

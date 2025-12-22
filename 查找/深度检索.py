@@ -1,20 +1,24 @@
 import os, bpy, tempfile
+from typing import cast
 from .处理文件 import 处理文件
 from ..图像.筛选贴图 import 确认贴图
+from ..图像.导入贴图 import 匹配阈值
 from ..通用.剪尾 import 剪去后缀
-from ..材质.材质分类 import 材质分类, 头发关键词
+from ..材质.材质分类 import 材质分类
 from ..着色.贴图.基础贴图 import 筛选贴图, 筛选基础贴图
 from ..图像.匹配贴图.匹配贴图 import 匹配模型贴图和导入贴图
+from ..指针 import XiaoerImage
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
     from PIL import Image
 except ImportError:
+    Image = None
     pass
 
 排除集合 = set()
 
-def 深度检索(self, 模型, 候选路径, 游戏=None):
+def 深度检索(self:bpy.types.Operator, 模型, 候选路径, 游戏=None):
 
     self.report({"INFO"}, f"{模型.name}初步搜索结果如下，即将进行深度检索进一步确认\n"+"\n".join(
         f"{路径}" for 路径 in 候选路径))
@@ -90,7 +94,7 @@ def 深度检索(self, 模型, 候选路径, 游戏=None):
                         if 确认贴图(文件):   # 刻晴「霓裾翩跹」Hair贴图实为黑丝贴图
                             # 名称 = os.path.splitext(图像)[0]
                             图像路径 = os.path.join(目录, 文件)
-                            图像 = bpy.data.images.load(str(图像路径))
+                            图像 = cast(XiaoerImage, bpy.data.images.load(str(图像路径)))
                             if 筛选基础贴图(游戏, 图像):
                                 贴图 = Image.open(图像路径).convert("RGBA")
                                 基础贴图.append((贴图, 路径))
@@ -116,15 +120,8 @@ def 深度检索(self, 模型, 候选路径, 游戏=None):
             # 遍历所有可能的匹配对
             for 原始名称 in 模型贴图匹配过程:
                 for 导入名称, 汉明距离 in 模型贴图匹配过程[原始名称].items():
-            #         # self.report({"INFO"}, f"路径{导入名称} 汉明距离{汉明距离}")
-            #         # # 更新最小值和计数器
-            #         # if 汉明距离 < 最小距离:
-            #         #     最小距离 = 汉明距离
-            #         #     匹配数量 = 1
-            #         # elif 汉明距离 == 最小距离:
-            #         #     匹配数量 += 1
-                    print(导入名称, 汉明距离, 汉明距离 == 最小距离, 汉明距离 == 最小距离 < 1e8)
-                    if 汉明距离 == 最小距离 < 1e8:
+                    # print(导入名称, 汉明距离, 汉明距离 == 最小距离, 汉明距离 == 最小距离 < 匹配阈值)
+                    if 汉明距离 == 最小距离 < 匹配阈值:
                         if os.path.isfile(导入名称) and 导入名称.endswith('.blend'):
                             文件 = os.path.basename(导入名称)
                             角色 = 处理文件(文件)
@@ -142,14 +139,8 @@ def 深度检索(self, 模型, 候选路径, 游戏=None):
                                 # self.report({"INFO"}, f"更新最佳路径{导入名称} 最小距离{最小距离}")
                                 最短名称 = len(角色)
                                 最佳路径 = 导入名称
-                                # print(最佳路径, '最小距离',最小距离, '最短名称',最短名称)
-            # self.report({"INFO"}, f"{匹配数量}")
-            # self.report({"INFO"}, f"{最佳路径}")
-            # print(最小距离, 1e8, 最小距离 < 1e8)
-            # self.report({"INFO"}, f"最佳路径{最佳路径} 最小距离{最小距离}")
-            # print(最佳路径, 最小距离)
             if 最佳路径:
-                if 最小距离 < 1e8:
+                if 最小距离 < 匹配阈值:
                     # if 匹配数量 == 1:
                     #     路径 = 匹配路径[图名]
                     # else:  # 优先匹配有效名称最短的路径

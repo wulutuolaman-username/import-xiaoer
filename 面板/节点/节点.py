@@ -1,4 +1,6 @@
 import bpy
+from typing import cast
+from ...指针 import XiaoerNode
 
 class NodePanel(bpy.types.Panel):
     bl_idname = 'NODE_PT_import_xiaoer_node_1'
@@ -9,15 +11,15 @@ class NodePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_node and context.active_node.小二预设节点.使用插件
+        节点 = cast(XiaoerNode, context.active_node)
+        return 节点 and 节点.小二预设节点.使用插件
 
     def draw(self, context):
-        layout = self.layout
-        节点 = context.active_node
-
+        布局 = self.layout
+        节点 = cast(XiaoerNode, context.active_node)
         属性 = 节点.小二预设节点
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         列.prop(属性, '文件')
@@ -34,15 +36,15 @@ class TemplateNodePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.active_node and context.active_node.小二预设模板.使用插件
+        节点 = cast(XiaoerNode, context.active_node)
+        return 节点 and 节点.小二预设模板.使用插件
 
     def draw(self, context):
-        layout = self.layout
-        节点 = context.active_node
-
+        布局 = self.layout
+        节点 = cast(XiaoerNode, context.active_node)
         属性 = 节点.小二预设模板
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         列.prop(属性, '文件')

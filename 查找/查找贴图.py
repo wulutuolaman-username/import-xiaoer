@@ -1,18 +1,16 @@
-import os
+import os, bpy
 from ..通用.改名 import 模型名称处理
 from .深度检索 import 深度检索
+from ..偏好.偏好设置 import XiaoerAddonPreferences
+from ..指针 import XiaoerObject
 
-def 查找贴图(self, 偏好, 模型, 游戏):
+def 查找贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 游戏):
 
     if not 偏好.贴图目录 or not os.path.exists(偏好.贴图目录):
         return None, None
 
     匹配名称 = 模型名称处理(模型)
-    # 匹配名称 = 模型.name.replace("_mesh", "")
-    # 匹配名称 = 匹配名称.replace("【", "")
-    # 匹配名称 = 匹配名称.replace("】", "")
-    # 匹配名称 = 匹配名称.replace("星穹铁道—", "")
-    最大匹配 = 0
+    最大匹配 = 0  # 名称最大匹配长度
     候选路径 = set()
     替换表 = str.maketrans('', '', '0123456789._')  # 创建翻译表，删除数字、小数点、下划线
     for 目录, 子目录, 文件列表 in os.walk(偏好.贴图目录):

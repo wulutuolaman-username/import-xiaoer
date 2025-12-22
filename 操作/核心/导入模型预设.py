@@ -1,12 +1,14 @@
 import os, bpy, traceback
+from typing import cast
 from bpy.props import CollectionProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper
 from ...查找.查找预设 import 查找预设
 from ...核心.导入模型预设 import 炒飞小二
 from ...通用.清理 import 清理MMD刚体材质
 from ...偏好.获取偏好 import 获取偏好
+from ...指针 import XiaoerObject
 
-class ImportMatPresets(bpy.types.Operator):
+class XiaoerAddonImportMatPresets(bpy.types.Operator):
     """ 自动导入所有模型预设 """
     bl_idname = "import_xiaoer.import_presets_auto"
     bl_label = "导入模型预设"
@@ -31,6 +33,7 @@ class ImportMatPresets(bpy.types.Operator):
                 for 模型 in bpy.context.selected_objects:  # 可能选择了多个物体
                     模型列表.append(模型)
                 for 模型 in 模型列表:
+                    模型:XiaoerObject
                     if 模型.小二预设模型.导入完成 == True:
                         self.report({"INFO"}, f"{模型.name}已导入预设，在物体属性面板取消导入完成状态可再次导入")
                         continue
@@ -64,7 +67,7 @@ class ImportMatPresets(bpy.types.Operator):
             self.report({'WARNING'}, f"未设置预设目录")
             return {'CANCELLED'}  # 确保返回有效结果
 
-class ImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
+class XiaoerAddonImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
     """ 选择对应模型预设导入 """
     bl_idname = "import_xiaoer.import_presets_hand"
     bl_label = "选择预设文件"
@@ -82,12 +85,12 @@ class ImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         偏好 = 获取偏好()
-        文件路径 = self.filepath  # 手动选择的文件路径
+        文件路径 = self.filepath  # type: ignore
         角色 = os.path.splitext(os.path.basename(文件路径))[0]  # 获取文件名（去掉路径和扩展名）
         角色 = 角色.replace("渲染", "")  # 去掉“渲染”字样（如果有）
         角色 = 角色.replace("预设", "")  # 去掉“预设”字样（如果有）
         self.report({"INFO"}, f"匹配名称：" + str(角色))
-        模型 = bpy.context.object  # 获取当前选中的模型
+        模型 = cast(XiaoerObject, bpy.context.object)  # 获取当前选中的模型
         try:
             if 模型.小二预设模型.导入完成 == True:
                 self.report({"INFO"}, f"{模型.name}已导入预设，在物体属性面板取消导入完成状态可再次导入")

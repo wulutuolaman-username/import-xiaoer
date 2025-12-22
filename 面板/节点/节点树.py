@@ -1,4 +1,6 @@
 import bpy
+from typing import cast
+from ...指针 import XiaoerShaderNodeTree, XiaoerGeometryNodeTree, XiaoerCompositorNodeTree
 
 class NodeGroupPanel(bpy.types.Panel):
     bl_idname = 'NODE_PT_import_xiaoer_nodegroup_1'
@@ -9,20 +11,15 @@ class NodeGroupPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点树 = context.space_data.edit_tree
-        # if 节点树:
-        #     for 节点组 in bpy.data.node_groups:
-        #         if 节点组.name == 节点树.name:
-        #             return 节点树.小二预设节点树.使用插件
-        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY'] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
+        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
+        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY', "COMPOSITING"] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
 
     def draw(self, context):
-        layout = self.layout
-        节点树 = context.space_data.edit_tree
-
+        布局 = self.layout
+        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
         属性 = 节点树.小二预设节点树
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         列.prop(属性, '文件')
@@ -39,20 +36,15 @@ class TemplateNodeGroupPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点树 = context.space_data.edit_tree
-        # if 节点树:
-        #     for 节点组 in bpy.data.node_groups:
-        #         if 节点组.name == 节点树.name:
-        #             return 节点树.小二预设模板.使用插件
-        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY'] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
+        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
+        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY', "COMPOSITING"] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
 
     def draw(self, context):
-        layout = self.layout
-        节点树 = context.space_data.edit_tree
-
+        布局 = self.layout
+        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
         属性 = 节点树.小二预设模板
 
-        列 = layout.column()
+        列 = 布局.column()
         列.prop(属性, '渲染作者')
         列.prop(属性, '插件作者')
         列.prop(属性, '文件')

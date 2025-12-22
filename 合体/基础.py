@@ -9,9 +9,11 @@ from ..操作.选中.全选模型 import SelectAllMeshes
 from ..操作.选中.选中模型 import SelectModel
 from ..操作.复制文本 import XiaoerAddon_OT_copy_to_clipboard
 from ..操作.检查透明 import XiaoerAddonCheckTransparent
-from ..操作.核心.导入模型预设 import ImportMatPresets, ImportMatPresetsFilebrowser
-from ..操作.核心.加载预设模板 import ExecuteTemplate
-from ..操作.核心.导出模型预设 import ExportMatPresets
+from ..操作.模块.安装模块 import Install_Packages
+from ..操作.模块.卸载模块 import Uninstall_Packages
+from ..操作.核心.导入模型预设 import XiaoerAddonImportMatPresets, XiaoerAddonImportMatPresetsFilebrowser
+from ..操作.核心.加载预设模板 import XiaoerAddonExecuteTemplate
+from ..操作.核心.导出模型预设 import XiaoerAddonExportMatPresets
 from ..面板.视图.小二 import XiaoerUI
 from ..面板.视图.反馈 import InformationFeedbackUI
 from ..面板.视图.引用 import MMDtoolsUI, BetterFBXUI
@@ -50,15 +52,15 @@ classes = (
     XiaoerAddon_OT_copy_to_clipboard,
     XiaoerAddonCheckTransparent,
 
-    ImportMatPresets,
-    ImportMatPresetsFilebrowser,
+    XiaoerAddonImportMatPresets,
+    XiaoerAddonImportMatPresetsFilebrowser,
 
     # GameTemplateItem,
     # GAME_UL_TemplateList,
 
-    ExecuteTemplate,
+    XiaoerAddonExecuteTemplate,
 
-    ExportMatPresets,
+    XiaoerAddonExportMatPresets,
 
     XiaoerBilibiliOpenWebsite,
     XiaoerAfdianOpenWebsite,
@@ -66,6 +68,9 @@ classes = (
     WulutuolamanTiktokOpenWebsite,
     WulutuolamanBilibiliOpenWebsite,
     TemplateExampleOpenWebsite,
+
+    Install_Packages,
+    Uninstall_Packages,
 
     XiaoerUI,
     InformationFeedbackUI,
@@ -86,4 +91,7 @@ def 注册类():
 
 def 注销类():
     for clss in classes:
-        bpy.utils.unregister_class(clss)
+        try:
+            bpy.utils.unregister_class(clss)
+        except:
+            pass

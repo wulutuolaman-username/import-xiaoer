@@ -1,7 +1,7 @@
 import bpy
-from .模板 import XiaoerAddonPresetsTemplateInformation
 from ..着色.更新.更新材质 import 更新材质
 from ..着色.更新.更新透明 import 更新透明
+from .模板 import XiaoerAddonPresetsTemplateInformation
 
 class XiaoerAddonMaterialPresetsTemplateInformation(XiaoerAddonPresetsTemplateInformation):
 
@@ -57,16 +57,15 @@ class XiaoerAddonMaterialPresetsTemplateInformation(XiaoerAddonPresetsTemplateIn
         name="透明材质",
         description="可以手动更新材质为透明着色",
         default=False,
-        update=lambda self, context: 更新透明(self, context),
+        update=更新透明,
     )
     透明更新: bpy.props.BoolProperty(
         name="透明更新",
         default=False,
     )
 
-    基础贴图: bpy.props.EnumProperty(
+    基础贴图: bpy.props.StringProperty(
         name="基础贴图",
-        items=lambda self, context: context.object.小二预设模板.基础贴图枚举项,
     )
     完成匹配基础贴图: bpy.props.BoolProperty(
         name="完成匹配基础贴图",

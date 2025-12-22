@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import bpy
 from ...通用.信息 import 报告信息
 from ...着色.贴图.基础贴图 import 筛选贴图, 匹配基础贴图
 from ...着色.混合.混合透明 import MMDalpha
@@ -9,8 +10,10 @@ from ...着色.节点.透明.混合节点 import 获取混合节点
 from ...着色.节点.透明.区域节点 import 获取区域节点
 from ...着色.节点.贴图.基础贴图 import 获取基础贴图节点
 from ...着色.节点.材质节点组.调色节点组 import 获取材质节点组
+from ...偏好.偏好设置 import XiaoerAddonPreferences
+from ...指针 import XiaoerObject, XiaoerMaterial
 
-def 表情着色(self, 偏好, 节点组列表, 材质, 游戏, 模型):
+def 表情着色(self:bpy.types.Operator|None, 偏好:XiaoerAddonPreferences, 节点组列表, 材质:XiaoerMaterial, 游戏, 模型:XiaoerObject):
     if 材质.name in 模型.data.materials:
         """
         alpha = 0
@@ -33,7 +36,7 @@ def 表情着色(self, 偏好, 节点组列表, 材质, 游戏, 模型):
         # material.show_transparent_back = False  # 不显示背面
         透明节点 = 获取透明节点(材质, '小二插件：透明节点')
         混合节点 = 获取混合节点(材质, '小二插件：混合节点')
-        调色节点组 = 获取材质节点组(节点组列表, 材质)
+        调色节点组 = 获取材质节点组(self, 节点组列表, 材质)
         材质输出节点 = 获取材质输出节点(材质)
         材质.node_tree.links.new(透明节点.outputs[0], 混合节点.inputs[1])
         材质.node_tree.links.new(调色节点组.outputs[0], 混合节点.inputs[2])
@@ -63,6 +66,7 @@ def 表情着色(self, 偏好, 节点组列表, 材质, 游戏, 模型):
                     材质.node_tree.links.new(原始贴图节点.outputs[0], 调色节点组.inputs[0])
                     材质.node_tree.links.new(原始贴图节点.outputs[1], 混合节点.inputs[0])
                 elif not 材质.小二预设模板.使用插件: # 更新材质不改变输出:
+                    MMD着色节点组 = 材质.node_tree.nodes.get("mmd_shader")
                     if MMD着色节点组:
                         材质.node_tree.links.new(MMD着色节点组.outputs[0], 材质输出节点.inputs['Surface'])
                     else:

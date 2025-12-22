@@ -1,7 +1,8 @@
-from ...属性.模板 import 小二预设模板属性
+from ...指针 import XiaoerNode
+from ...属性.属性 import 小二预设模板属性
 
 def 清理无用节点(材质):
-    for 节点 in 材质.node_tree.nodes:
+    for 节点 in 材质.node_tree.nodes: # type:XiaoerNode
         if "小二插件" in 节点.name:
             if not 节点.小二预设模板.使用插件:
                 小二预设模板属性(节点.小二预设模板, None, None, None, None)
@@ -15,17 +16,17 @@ def 清理无用节点(材质):
 
 def 找到输出(节点):
     if 节点.outputs:
-        print(节点)
+        # print(节点)
         for 输出 in 节点.outputs:
             if 输出.is_linked:
                 for 连接 in 输出.links:
-                    print(节点, 连接.to_node)
+                    # print(节点, 连接.to_node)
                     if 连接.to_node.type == 'OUTPUT_MATERIAL' or 找到输出(连接.to_node):
-                        print(节点, 连接.to_node, True, '\n')
+                        # print(节点, 连接.to_node, True, '\n')
                         return True
-                    else:
+                    # else:
                     #     if 找到输出(连接.to_node):
-                        print(节点, 连接.to_node, False, '\n')
+                    #     print(节点, 连接.to_node, False, '\n')
                     #         return True
-    print(节点, False, '\n')
+    # print(节点, False, '\n')
     return False

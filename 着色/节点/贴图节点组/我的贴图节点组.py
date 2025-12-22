@@ -1,11 +1,14 @@
+import bpy
 from ....通用.编号 import 节点组编号
 from ....通用.信息 import 报告信息
 from ...贴图.光照贴图 import 获取光照贴图
 from ...贴图.法线贴图 import 获取法线贴图
 from ...贴图.AO贴图 import 获取AO贴图
 from ...混合.混合透明 import 混合透明
+from ....偏好.偏好设置 import XiaoerAddonPreferences
+from ....指针 import XiaoerMaterial, XiaoerImage
 
-def 我的贴图节点组(self, 偏好, 节点组列表, 材质, 材质节点组, 游戏, 基础贴图, 材质类型, 透明贴图, 基础贴图透明, 材质输出节点):
+def 我的贴图节点组(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 节点组列表, 材质:XiaoerMaterial, 材质节点组, 游戏, 基础贴图:XiaoerImage, 材质类型, 透明贴图, 基础贴图透明, 材质输出节点):
     if 材质类型 == "皮肤":  # 皮肤材质通常使用衣服贴图
         材质类型 = "衣服"
     贴图节点组 = 材质.node_tree.nodes.new(type='ShaderNodeGroup')  # 新建贴图节点组
@@ -63,7 +66,7 @@ def 我的贴图节点组(self, 偏好, 节点组列表, 材质, 材质节点组
                             光照贴图 = 获取光照贴图(self, 游戏, 基础贴图)
                             if 光照贴图:
                                 图像节点.image = 光照贴图  # 输入光照贴图
-                                光照贴图.colorspace_settings.name = 'Non-Color'  # 非彩色
+                                光照贴图.colorspace_settings.name = 'Non-Color'  # type:ignore
                                 报告信息(self, '正常', f'材质Material["{材质.name}"]输入光照贴图:Texture["{光照贴图.name}"]')
                             else:
                                 报告信息(self, '异常', f'材质Material["{材质.name}"]的基础贴图["{基础贴图.name}"]未找到光照贴图')
@@ -73,7 +76,7 @@ def 我的贴图节点组(self, 偏好, 节点组列表, 材质, 材质节点组
                             法线贴图 = 获取法线贴图(self, 游戏, 基础贴图)
                             if 法线贴图:
                                 图像节点.image = 法线贴图  # 输入法线贴图
-                                法线贴图.colorspace_settings.name = 'Non-Color'  # 非彩色
+                                法线贴图.colorspace_settings.name = 'Non-Color'    # type:ignore
                                 报告信息(self, '正常', f'材质Material["{材质.name}"]输入法线贴图:Texture["{法线贴图.name}"]')
                             else:
                                 报告信息(self, '异常', f'材质Material["{材质.name}"]的基础贴图["{基础贴图.name}"]未找到法线贴图')
@@ -83,7 +86,7 @@ def 我的贴图节点组(self, 偏好, 节点组列表, 材质, 材质节点组
                             AO贴图 = 获取AO贴图(游戏, 基础贴图)
                             if AO贴图:
                                 图像节点.image = AO贴图  # 输入AO贴图
-                                AO贴图.colorspace_settings.name = 'Non-Color'  # 非彩色
+                                AO贴图.colorspace_settings.name = 'Non-Color'    # type:ignore
                                 报告信息(self, '正常', f'材质Material["{材质.name}"]输入AO贴图:Texture["{AO贴图.name}"]')
                             else:
                                 报告信息(self, '异常', f'材质Material["{材质.name}"]的基础贴图["{基础贴图.name}"]未找到AO贴图')

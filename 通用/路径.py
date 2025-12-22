@@ -1,6 +1,6 @@
 import os, bpy
 from ..着色.贴图.基础贴图 import 筛选贴图
-from ..通用.剪尾 import 剪去后缀
+# from ..通用.剪尾 import 剪去后缀
 
 def 获取模型路径(self, 模型):
     if 模型.parent and 模型.parent.parent and 模型.parent.parent.get("import_folder"):  # mmd_tools导入的模型

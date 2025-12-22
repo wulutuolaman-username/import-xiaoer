@@ -3,17 +3,20 @@ import numpy as np
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from ...通用.信息 import 报告信息
+from ...指针 import XiaoerObject
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
     from PIL import Image
 except ImportError:
+    Image = None
     pass
 
 global imagehash
 try:
     import imagehash
 except ImportError:
+    imagehash = None
     pass
 
 哈希尺寸 = 32
@@ -45,7 +48,8 @@ def 匹配模型贴图(原始贴图, 原始名称):
 
 def 尝试匹配贴图(导入贴图, 导入名称, 原始名称, 透明, 尺寸):
     try:
-        缩放图像 = 导入贴图.copy().resize(尺寸, Image.NEAREST)  # 应用透明遮罩必须相同分辨率
+        # 应用透明遮罩必须相同分辨率
+        缩放图像 = 导入贴图.copy().resize(尺寸, Image.NEAREST)  # type:ignore
         像素2 = np.array(缩放图像)
         像素2[透明] = [0, 0, 0, 0]  # 1.1.0应用透明遮罩
         # # 图像遮罩2 = Image.fromarray(像素2, 'RGBA')
@@ -94,7 +98,7 @@ def 并行匹配全部贴图(模型贴图, 基础贴图):
             匹配贴图[原始名称] = 导入名称
     return 匹配贴图, dict(模型贴图匹配过程)  # 转为普通字典返回
 
-def 匹配模型贴图和导入贴图(模型, 模型贴图, 基础贴图):
+def 匹配模型贴图和导入贴图(模型:XiaoerObject | None, 模型贴图, 基础贴图):
     if len(模型贴图) > 0 and len(基础贴图) > 0:  # 1.1.0选择模型路径没有需要哈希的导入贴图则跳过
         # Blender API 阻塞点（无法在子线程并行）,需要全部图像转为PIL图像再进行纯python计算
         # 1.1.0多线程并行匹配贴图

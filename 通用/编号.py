@@ -1,7 +1,6 @@
 # coding: utf-8
 
-import bpy
-import re
+import re, bpy
 from ..通用.剪尾 import 剪去后缀
 
 def 节点组编号(self, 节点树):

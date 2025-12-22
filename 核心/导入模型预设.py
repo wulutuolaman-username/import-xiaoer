@@ -1,17 +1,28 @@
 # coding: utf-8
 
 import bpy
+from typing import cast
+from ..通用.回调 import 回调
 from ..通用.设置 import 渲染设置
 from ..通用.剪尾 import 剪去后缀
 from ..通用.清理 import 清理贴图
 from ..通用.灯光 import 灯光驱动
 from ..通用.绑定 import 矩阵绑定
-from ..几何.几何节点 import 几何节点
 from ..通用.改名 import 重命名贴图
+from ..几何.几何节点 import 几何节点
+from ..偏好.偏好设置 import XiaoerAddonPreferences
 from ..通用.递归 import 递归着色节点组, 递归几何节点组
-from ..属性.预设 import 小二预设模型属性, 小二预设材质属性, 小二预设贴图属性, 小二预设节点属性, 小二预设节点组属性
+from ..属性.属性 import 小二预设模型属性, 小二预设材质属性, 小二预设贴图属性, 小二预设节点属性, 小二预设节点组属性
+from ..指针 import XiaoerObject, XiaoerMaterial, XiaoerNode, XiaoerShaderNodeTree, XiaoerGeometryNodeTree
 
-def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重命名=True):
+完成 = set()
+
+def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 文件路径, 角色, 数据源=None, 重命名=True):
+
+    # 1.1.2防止回调陷入死循环
+    if 模型 in 完成:
+        return
+    完成.add(模型)
 
     UV图层 = 模型.data.uv_layers.active
     if not UV图层:
@@ -26,19 +37,12 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
             小二预设模型属性(模型.parent.parent, 文件路径, 角色)
     self.report({"INFO"}, f"{模型.name}导入预设文件：{文件路径}")
     if not 数据源:
-    # 追加预设文件的所有资产
+        # 追加预设文件的所有资产
         with bpy.data.libraries.load(文件路径) as (数据源, 数据流):
             排除 = {"workspaces", "screens"}
             for 属性 in dir(数据流):
                 if 属性 not in 排除:  # 1.1.0排除屏幕和工作区
                     setattr(数据流, 属性, getattr(数据源, 属性))
-    # for 节点组 in 数据源.node_groups:  # 1.1.0fbx模型分离
-    #     # if 节点组.name in bpy.data.node_groups:
-    #     #     self.report({"INFO"}, 节点组.name)
-    #     # else:
-    #     if 节点组.name not in bpy.data.node_groups:
-    #         # 报告缺失的节点组名称
-    #         self.report({'ERROR'}, f"几何节点组 '{节点组.name}' 已被移除或未加载！")
     for 节点组 in list(数据源.node_groups):
         try:
             _ = 节点组.name
@@ -47,18 +51,17 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
     for 贴图 in list(数据源.images):
         try:
             _ = 贴图.name
-        except:  # 移除无效节点组
+        except:  # 移除无效贴图
             数据源.images.remove(贴图)
 
     # 设置辉光属性和色彩管理
     渲染设置()
 
-    # self.report({"INFO"}, f"{数据源.node_groups}")
-
     # 应用几何节点
     for 节点组 in 数据源.node_groups:
         # self.report({"INFO"}, f"{节点组}")
-        if 节点组.type == 'GEOMETRY' and (节点组.小二预设模板.应用修改器 == True or 节点组.users == 0):  # 未被使用的几何节点组
+        if 节点组.type == 'GEOMETRY' and (节点组.小二预设模板.应用修改器 or 节点组.users == 0):  # 未被使用的几何节点组
+            节点组:XiaoerGeometryNodeTree
             几何节点(模型, 节点组)  # 应用几何节点
             for 节点 in 节点组.nodes:
                 if 节点.type == 'GROUP':
@@ -75,7 +78,7 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
     for 材质 in 数据源.materials:
         if 材质.users == 0:
             材质.use_fake_user = True
-
+    新集合 = None
     if 偏好.重命名资产 and 偏好.独立集合 and 重命名:  ############### 如果开启了连续导入 ###############
         # 将模型相关物体移入独立集合
         新集合 = bpy.data.collections.get(角色)
@@ -124,7 +127,9 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                     for 孙级 in 子级.children:
                         if 偏好.独立集合:  ############### 如果开启了连续导入 ###############
                             for 集合 in 孙级.users_collection:
-                                if 集合.name not in ['RigidBodyConstraints', 'RigidBodyWorld']:
+                                刚体世界 = bpy.context.scene.rigidbody_world
+                                if 集合 not in [刚体世界.collection, 刚体世界.constraints] if 刚体世界 else []:  # 排除刚体集合
+                                # if 集合.name not in ['RigidBodyConstraints', 'RigidBodyWorld']:
                                     集合.objects.unlink(孙级)  # 祖父级空物体的孙级全部移出旧集合
                             新集合.objects.link(孙级)  # 祖父级空物体的孙级全部移入新集合
                         if 偏好.重命名刚体和关节:  ############### 如果开启了连续导入 ###############
@@ -139,15 +144,16 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
     for 材质 in 模型.data.materials:
         名称, 后缀 = 剪去后缀(材质.name)
         if 名称 not in 同名集合:
-            # 同名材质 = [m for m in 模型.data.materials if 剪去后缀(m.name)[0] == 名称]
-            同名材质 = [
-                m for m in 模型.data.materials
+            同名材质: [XiaoerMaterial] = []
+            for m in 模型.data.materials:
+                m = cast(XiaoerMaterial, m)
                 if (
                     剪去后缀(m.name.replace(f'_{m.小二预设材质.角色}', '')
-                    if m.小二预设材质.角色 and m.name.endswith(f'_{m.小二预设材质.角色}')  # 材质可能重命名
-                    else m.name)[0] == 名称
-                )
-            ]
+                    if m.小二预设材质.角色 and m.name.endswith(f'_{m.小二预设材质.角色}')
+                    else m.name
+                    )[0] == 名称
+                ):
+                    同名材质.append(m)
             if len(同名材质) > 1:
                 同名集合.add(名称)
                 模型同名材质列表.extend(同名材质)
@@ -172,6 +178,7 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
     # 替换网格材质
     for i, 模型材质 in enumerate(模型.data.materials):  # 在网格中遍历旧材质
         if 模型材质 not in 预设同名材质列表:
+            模型材质:XiaoerMaterial
             名称1, 后缀1 = 剪去后缀(模型材质.name)  # 连续导入模型，材质会产生后缀
             模型材质角色 = 模型材质.小二预设材质.角色
             if 模型材质角色 and 名称1.endswith(f'_{模型材质角色}'):
@@ -198,49 +205,14 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                     数据.material = 数据.material[:-4]  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
 
-    # # 材质图像重命名
-    # 重命名图像 = set()
-    # def 重命名贴图(偏好, 节点, 角色):
-    #     if 偏好.重命名资产 and 偏好.重命名贴图:  ############### 如果开启了连续导入 ###############
-    #         图像 = 节点.image
-    #         # self.report({'INFO'}, f"{图像}")
-    #         if 图像 and 图像.name not in 重命名图像:
-    #             if not 筛选图像(图像):
-    #                 # 1.1.0mmd_tools导入的模型贴图的内存地址不同
-    #                 新图 = bpy.data.images.get(图像.name + "_" + 角色)
-    #                 # self.report({'INFO'}, f"新图: {新图}")
-    #                 # self.report({'INFO'}, f"重命名前: {图像.name}")
-    #                 if 新图 :  # 防止同名不同内存地址的贴图被重复命名
-    #                     if 图像.name != 新图.name:
-    #                         # self.report({'INFO'}, f"新图名称: {新图.name}")
-    #                         节点.image = 新图
-    #                         # self.report({'INFO'}, f"输入新图: {节点.image.name}")
-    #                 else:
-    #                     # self.report({'INFO'}, f"图像数据: {图像}")
-    #                     # self.report({'INFO'}, f"重命名前: {图像.name}")
-    #                     图像.name += "_" + 角色  # 材质图像重命名
-    #                     # self.report({'INFO'}, f"重命名后: {图像.name}")
-    #                     # self.report({'INFO'}, f"重命名为: {图像.name}")
-    #                     重命名图像.add(图像.name)
-    #
-    # def 递归节点组(self, 节点组):
-    #     for 节点 in 节点组.node_tree.nodes:
-    #         if 节点.type == 'TEX_IMAGE':
-    #             清理贴图(节点)
-    #             重命名贴图(偏好, 节点, 角色)
-    #             小二预设贴图属性(节点.image, 文件路径, 角色)
-    #         if 节点.type == 'GROUP':
-    #             if 节点.node_tree:  # 1.1.0增加检查
-    #                 # self.report({"INFO"},f"递归节点组{节点.node_tree.name}")
-    #                 递归节点组(self, 节点)
-    #         小二预设节点属性(节点, 文件路径, 角色)
-
     # 清理材质图像
     for 材质 in 模型.data.materials:
-        if 材质.node_tree:
-            for 节点 in 材质.node_tree.nodes:
+        节点树 = cast(XiaoerShaderNodeTree, 材质.node_tree)
+        if 节点树:
+            for 节点 in 节点树.nodes:
+                节点:XiaoerNode
                 if 节点.type == 'TEX_IMAGE':
-                    图像 = 节点.image
+                    图像 = 节点.image  # type:ignore
                     if 图像:
                         名称, 后缀 = 剪去后缀(图像.name)
                         if 后缀 and "mmd" not in 节点.name:
@@ -261,15 +233,15 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                                 输入参数 = {}
                                 输入连接 = {}
                                 输出连接 = {}
-                                输入数量 = len(节点.inputs)
-                                输出数量 = len(节点.outputs)
-                                if 输入数量 > 0:
+                                输入数量 = len(节点.inputs) > 0 and bpy.app.version[:2] == (4, 1)
+                                输出数量 = len(节点.outputs) > 0 and bpy.app.version[:2] == (4, 1)
+                                if 输入数量:
                                     for i, 输入 in enumerate(节点.inputs):
                                         if 输入.is_linked:
                                             输入连接[i] = 输入.links[0].from_socket
                                         if 输入.bl_idname != "NodeSocketVirtual":
-                                            输入参数[i] = 输入.default_value
-                                if 输出数量 > 0:
+                                            输入参数[i] = 输入.default_value  # type:ignore
+                                if 输出数量:
                                     for i, 输出 in enumerate(节点.outputs):
                                         if 输出.is_linked:
                                             输出连接[i] = set()
@@ -278,19 +250,19 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                                 # 替换节点组
                                 节点.node_tree = 节点组
                                 # 如果连接断开，再恢复连接和输入参数
-                                if 输入数量 > 0:
+                                if 输入数量:
                                     for i in 输入参数:
-                                        节点.inputs[i].default_value = 输入参数[i]
+                                        节点.inputs[i].default_value = 输入参数[i]  # type:ignore
                                     for i in 输入连接:
-                                        材质.node_tree.links.new(输入连接[i], 节点.inputs[i])
-                                if 输出数量 > 0:
+                                        节点树.links.new(输入连接[i], 节点.inputs[i])
+                                if 输出数量:
                                     for i in 输出连接:
                                         for 接口 in 输出连接[i]:
-                                            材质.node_tree.links.new(节点.outputs[i], 接口)
+                                            节点树.links.new(节点.outputs[i], 接口)
                             else:
                                 节点.node_tree.name = 名称
                 小二预设节点属性(节点, 文件路径, 角色)
-            小二预设节点组属性(材质.node_tree, 文件路径, 角色)  # bpy.types.NodeTree
+            小二预设节点组属性(节点树, 文件路径, 角色)
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
 
     # 1.0.7确保驱动物体在模型集合中
@@ -315,10 +287,10 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                 bpy.context.view_layer.objects.active = 模型
 
     模型.小二预设模型.导入完成 = True
-    # if 模型.parent:
-    #     模型.parent.小二预设模型.导入完成 = True
-    #     if 模型.parent.parent:
-    #         模型.parent.parent.小二预设模型.导入完成 = True
+    if 模型.parent:
+        模型.parent.小二预设模型.导入完成 = True
+        if 模型.parent.parent:
+            模型.parent.parent.小二预设模型.导入完成 = True
 
     if 偏好.重命名资产 and 偏好.重命名材质 and 重命名:  ############### 如果开启了连续导入 ###############
         for 材质 in 数据源.materials:
@@ -351,24 +323,26 @@ def 炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源=None, 重
                     模型.data.shape_keys.animation_data.action.name = 名称
                 模型.data.shape_keys.animation_data.action.name += "_" + 角色
 
+    回调(炒飞小二, self, 偏好, 模型, 文件路径, 角色, 数据源, 重命名=False)
+
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
     self.report({"OPERATOR"}, f"{模型.name}完成预设导入")
 
-    骨架 = 模型.parent
-    # if 骨架 and 骨架.type == 'ARMATURE' and len([模型 for 模型 in 骨架.children if 模型.type == 'MESH']) > 1:
-    if 骨架:
-        def 递归(骨架):
-            if not 骨架.小二预设模型.导入完成:
-                骨架.小二预设模型.导入完成 = True
-                for 模型 in 骨架.children:  # 1.1.0fbx模型分离
-                    if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
-                        炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源, 重命名=False)
-                    elif 模型.children:
-                        for 物体 in 模型.children:
-                            递归(物体)
-                if 骨架.parent:
-                    递归(骨架.parent)
-        递归(骨架)
+    # 骨架 = 模型.parent
+    # # if 骨架 and 骨架.type == 'ARMATURE' and len([模型 for 模型 in 骨架.children if 模型.type == 'MESH']) > 1:
+    # if 骨架:
+    #     def 递归(骨架):
+    #         if not 骨架.小二预设模型.导入完成:
+    #             骨架.小二预设模型.导入完成 = True
+    #             for 模型 in 骨架.children:  # 1.1.0fbx模型分离
+    #                 if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
+    #                     炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源, 重命名=False)
+    #                 elif 模型.children:
+    #                     for 物体 in 模型.children:
+    #                         递归(物体)
+    #             if 骨架.parent:
+    #                 递归(骨架.parent)
+    #     递归(骨架)
 
     # # 1.1.0清除导入的屏幕和工作区
     # for 工作区 in 数据源.workspaces:

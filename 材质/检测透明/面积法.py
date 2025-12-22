@@ -1,5 +1,4 @@
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor
 
 # 先在像素空间（你的“检测透明分辨率”）下得到面的多边形顶点。
 # 在面的像素包围盒里生成所有像素中心（x+0.5,y+0.5）。
@@ -143,15 +142,15 @@ def 分离多边形_按重合段拆分(多边形, 裁剪器, tol=1e-9, round_dec
                 # 检查点 p,y 和 q,y 是否接近裁剪边 y
                 y0 = ca[1]
                 if abs(p[1] - y0) < tol and abs(q[1] - y0) < tol:
-                    start = min(p[0], q[0])
-                    end = max(p[0], q[0])
+                    start = min(p[0], q[0])  # type:ignore
+                    end = max(p[0], q[0])  # type:ignore
                     if end - start > tol:  # 非零长度
                         intervals.append((start, end))
             elif is_vertical:
                 x0 = ca[0]
                 if abs(p[0] - x0) < tol and abs(q[0] - x0) < tol:
-                    start = min(p[1], q[1])
-                    end = max(p[1], q[1])
+                    start = min(p[1], q[1])  # type:ignore
+                    end = max(p[1], q[1])  # type:ignore
                     if end - start > tol:
                         intervals.append((start, end))
             else:
@@ -219,7 +218,7 @@ def 分离多边形_按重合段拆分(多边形, 裁剪器, tol=1e-9, round_dec
             elif is_v:
                 x0 = ca[0]
                 if abs(p[0] - x0) < tol and abs(q[0] - x0) < tol:
-                    s_min, s_max = min(p[1], q[1]), max(p[1], q[1])
+                    s_min, s_max = min(p[1], q[1]), max(p[1], q[1])  # type:ignore
                     cand_ys = [y for y in split_positions_per_edge[edge_idx] if (s_min + tol) < y < (s_max - tol)]
                     if len(cand_ys) > 0:
                         if abs(q[1] - p[1]) < tol:

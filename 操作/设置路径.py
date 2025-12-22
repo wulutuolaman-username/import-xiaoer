@@ -1,6 +1,6 @@
 import bpy
 from bpy.props import StringProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper
+from bpy_extras.io_utils import ImportHelper
 from ..偏好.获取偏好 import 获取偏好
 
 # 操作符基类
@@ -18,7 +18,7 @@ class SetTemplatePathBaseOperator(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         偏好 = 获取偏好()
-        setattr(偏好, self.属性, self.filepath)
+        setattr(偏好, self.属性, self.filepath)  # type:ignore
         return {'FINISHED'}
 # 具体操作符类
 class SetUserPathOperator(SetTemplatePathBaseOperator):
@@ -45,7 +45,7 @@ class SetImagePathOperator(bpy.types.Operator, ImportHelper):
         偏好 = 获取偏好()
 
         # 将选择的路径保存到目标属性
-        setattr(偏好, self.属性, self.filepath)
+        setattr(偏好, self.属性, self.filepath)  # type:ignore
         return {'FINISHED'}
 
 class SetHonkai3PathOperator(SetTemplatePathBaseOperator):

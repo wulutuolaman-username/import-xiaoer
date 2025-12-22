@@ -1,4 +1,4 @@
-import os
+import os, bpy
 from bpy.utils import previews
 
 def 加载图标():

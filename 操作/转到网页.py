@@ -1,5 +1,4 @@
-import bpy
-import webbrowser
+import bpy,webbrowser
 
 class OpenWebsite(bpy.types.Operator):
     bl_idname = "xiaoer.open_website"
@@ -42,12 +41,12 @@ class XiaoerAplayboxOpenWebsite(OpenWebsite):
 class WulutuolamanTiktokOpenWebsite(OpenWebsite):
     bl_idname = "wulutuolaman.open_website_tiktok"
     bl_label = ""
-    bl_description = "点击前往插件作者抖音主页反馈插件信息"
+    bl_description = "点击前往插件作者抖音主页反馈插件问题"
     url: bpy.props.StringProperty(default="https://www.douyin.com/user/MS4wLjABAAAAFquoHuLepdMMZ42a9DF96CSYclTKxd3zFkQrP9yl8GSZU6LOxrhanY-pLE_ESDqN?from_tab_name=main&vid=7522913200401075482")
 class WulutuolamanBilibiliOpenWebsite(OpenWebsite):
     bl_idname = "wulutuolaman.open_website_bilibili"
     bl_label = ""
-    bl_description = "点击前往插件作者B站主页反馈插件信息"
+    bl_description = "点击前往插件作者B站主页反馈插件问题"
     url: bpy.props.StringProperty(default="https://space.bilibili.com/230130803?spm_id_from=333.1007.0.0")
 
 class TemplateExampleOpenWebsite(OpenWebsite):

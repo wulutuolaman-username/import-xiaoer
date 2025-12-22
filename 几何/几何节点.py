@@ -2,10 +2,10 @@
 
 import bpy
 from ..通用.剪尾 import 剪去后缀
+from ..指针 import XiaoerGeometryNodeTree
 
 # 代码来源：峰峰居士
-# 应用几何节点
-def 几何节点(模型, 节点组):
+def 几何节点(模型:bpy.types.Object, 节点组:XiaoerGeometryNodeTree):
     名称1, 后缀1 = 剪去后缀(节点组.name)
     节点组角色 = 节点组.小二预设节点树.角色
     if 节点组角色 and 节点组.name.endswith(f'_{节点组角色}'):

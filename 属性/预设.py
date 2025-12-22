@@ -1,5 +1,4 @@
 import bpy
-import datetime
 
 class XiaoerAddonPresetsInformation(bpy.types.PropertyGroup):
     """ 小二插件导入模型预设信息 """
@@ -66,23 +65,3 @@ class XiaoerAddonPresetsInformation(bpy.types.PropertyGroup):
         description="已禁用:此属性仅供内部使用,无法编辑",
         get=使用版本
     )
-def 小二预设属性(属性, 文件路径, 角色):
-    from ..__init__ import bl_info
-    属性.使用插件 = True
-    属性["文件路径"] = str(文件路径)
-    属性["角色名称"] = 角色
-    属性["使用时间"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    属性["使用版本"] = ".".join(map(str, bl_info["version"]))
-def 小二预设模型属性(模型, 文件路径, 角色):
-    小二预设属性(模型.小二预设模型, 文件路径, 角色)
-def 小二预设材质属性(材质, 文件路径, 角色):
-    小二预设属性(材质.小二预设材质, 文件路径, 角色)
-def 小二预设贴图属性(贴图, 文件路径, 角色):
-    小二预设属性(贴图.小二预设贴图, 文件路径, 角色)
-    贴图.小二预设贴图.导入完成 = True
-def 小二预设节点属性(节点, 文件路径, 角色):
-    小二预设属性(节点.小二预设节点, 文件路径, 角色)
-    节点.小二预设节点.导入完成 = True
-def 小二预设节点组属性(节点组, 文件路径, 角色):
-    小二预设属性(节点组.小二预设节点树, 文件路径, 角色)
-    节点组.小二预设节点树.导入完成 = True

@@ -1,10 +1,12 @@
 import bpy, re
 from .剪尾 import 剪去后缀
 from ..图像.筛选贴图 import 筛选图像
+from ..偏好.偏好设置 import XiaoerAddonPreferences
+from ..指针 import XiaoerObject
 
 重命名图像 = set()
 
-def 重命名贴图(偏好, 图像, 节点, 角色, 类型):
+def 重命名贴图(偏好:XiaoerAddonPreferences, 图像, 节点, 角色, 类型):
     if 偏好.重命名资产 and 偏好.重命名贴图:  ############### 如果开启了连续导入 ###############
         # self.report({'INFO'}, f"{图像}")
         if 图像 and 图像 not in 重命名图像:
@@ -37,13 +39,13 @@ def 重命名贴图(偏好, 图像, 节点, 角色, 类型):
                     重命名图像.add(图像)
 
 # 1.1.0
-def 模型名称处理(模型, 星穹铁道=False):
+def 模型名称处理(模型:XiaoerObject, 星穹铁道=False):
     if 模型.parent and 模型.parent.type == 'ARMATURE':
         if 模型.parent.parent:
             return 模型名称(模型.parent.parent, 星穹铁道)
         return 模型名称(模型.parent, 星穹铁道)
     return 模型名称(模型, 星穹铁道)
-def 模型名称(模型, 星穹铁道):
+def 模型名称(模型:XiaoerObject, 星穹铁道):
     # 名称 = 模型.name
     名称, 后缀 = 剪去后缀(模型.name)
     # 替换 = str.maketrans('', '', '0123456789.')  # 创建翻译表，删除数字和点
@@ -56,6 +58,7 @@ def 模型名称(模型, 星穹铁道):
     名称 = 名称.replace(" ", "")
     替换 = str.maketrans('', '', '0123456789')  # 创建翻译表，删除数字
     名称 = 名称.translate(替换)  # 移除数字
+    # noinspection RegExpRedundantEscape
     去掉括号 = re.sub(r'[\(\（].*?[\)\）]', '', 名称).strip()  # 去掉括号及括号内内容
     if 去掉括号:
         名称 = 去掉括号

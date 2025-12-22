@@ -1,6 +1,6 @@
 # coding: utf-8
 import bpy
-
+from ...通用.回调 import 回调
 from ...通用.信息 import 报告信息
 from ...着色.贴图.基础贴图 import 匹配基础贴图
 from ...着色.贴图.光照贴图 import 获取光照贴图
@@ -19,9 +19,11 @@ from ...着色.节点.贴图节点组.光照贴图节点组 import 获取光照�
 from ...着色.节点.贴图节点组.Ramp贴图节点组 import ramp节点组
 from ...着色.节点.贴图节点组.我的贴图节点组 import 我的贴图节点组
 from ...着色.贴图.空白贴图 import 获取空白贴图
+from ...偏好.偏好设置 import XiaoerAddonPreferences
+from ...指针 import XiaoerObject, XiaoerMaterial
 
 # 材质处理
-def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类型, 小二材质类型, 游戏, 模型, 材质面):
+def 小二好色(self:bpy.types.Operator|None, 偏好:XiaoerAddonPreferences, 节点组列表, 材质:XiaoerMaterial, 透明贴图, 材质类型, 小二材质类型, 游戏, 模型:XiaoerObject, 材质面):
     if 材质.name in 模型.data.materials:
         """
         有基础贴图
@@ -48,7 +50,7 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
             MMD着色节点组 → 材质输出节点
         如果未启用导入贴图，仅使用材质节点组（不连接贴图）
         """
-        材质节点组 = 获取材质节点组(游戏, 节点组列表, 材质, 小二材质类型)
+        材质节点组 = 获取材质节点组(self, 游戏, 节点组列表, 材质, 小二材质类型)
         材质输出节点 = 获取材质输出节点(材质)
         材质.node_tree.links.new(材质节点组.outputs[0], 材质输出节点.inputs['Surface'])
         MMD着色节点组 = 材质.node_tree.nodes.get("mmd_shader")  # 设为透明需要在设置描边时删除该材质
@@ -65,7 +67,7 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
                 报告信息(self, '正常', f'材质Material["{材质.name}"]根据MMDShaderDev的alpha设置透明')
             if alpha > 0:  # 1.0.9混合透明
                 混合节点 = 获取混合节点(材质, '小二插件：混合节点')
-                混合节点.inputs[0].default_value = alpha
+                混合节点.inputs[0].default_value = alpha  # type:ignore
                 材质.node_tree.links.new(透明节点.outputs[0], 混合节点.inputs[1])
                 材质.node_tree.links.new(材质节点组.outputs[0], 混合节点.inputs[2])
                 if not 材质.小二预设模板.使用插件:  # 更新材质不改变输出
@@ -78,7 +80,7 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
             if not 材质.小二预设模板.完成匹配基础贴图:
                 if 图像节点:
                     # 1.1.0如果没有匹配基础贴图，使用调色节点组
-                    调色节点组 = 获取调色节点组(节点组列表, 材质)
+                    调色节点组 = 获取调色节点组(self, 节点组列表, 材质)
                     # for 节点组 in 节点组列表:  # 设置材质节点组并输出材质
                     #     if 节点组.type == 'SHADER' and any(
                     #         节点组.name.startswith(后缀) for 后缀 in ["调色", "校色"]):  # 搜索材质节点组
@@ -119,58 +121,17 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
                     光照贴图节点组 = None
                     # self.report({"INFO"},f'检查点1：材质Material["{材质.name}"]光照贴图节点组{光照贴图节点组.node_tree.name}')
                     多部件 = False  # 1.1.0解决一种材质类型多个部件ramp贴图（如养乐多的丝柯克）
-                    # self.report({"INFO"}, f'材质Material["{材质.name}"]材质节点组{材质节点组.node_tree.name}使用次数{材质节点组.node_tree.users}')
-                    # if 基础贴图.小二预设模板.匹配节点组 and any(选项.材质分类 == 材质.小二预设模板.材质分类 for 选项 in 基础贴图.小二预设模板.匹配节点组):  # 检查贴图和材质节点组的使用情况
-                    #     选项 = next((选项 for 选项 in 基础贴图.小二预设模板.匹配节点组 if 选项.材质分类 == 材质.小二预设模板.材质分类),None)
-                    #     材质节点组.node_tree = 选项.节点组
-                    #     光照贴图节点组 = 获取光照贴图节点组(游戏, 材质节点组)
-                    # else:
-                    #     if 材质节点组.node_tree.users > 1+1:
-                    #         pass
-                    #     选项 = 基础贴图.小二预设模板.匹配节点组.add()
-                    #     选项.材质分类 = 材质.小二预设模板.材质分类
-                    #     选项.节点组 = 材质节点组.node_tree
+
                     记录次数 = 0
-                    if 模型.parent:  # 1.1.0fbx模型分离
-                        骨架 = 模型.parent
-                        完成递归 = set()
-                        def 递归(骨架):
-                            nonlocal self
-                            nonlocal 记录次数  # 声明使用外层的记录次数
-                            if 骨架 not in 完成递归:
-                                完成递归.add(骨架)
-                                for 网格 in 骨架.children:
-                                    if 网格.type == 'MESH' and not 网格.rigid_body:  # 排除面部定位和刚体
-                                        if 网格.小二预设模板.导入贴图:
-                                            # 报告信息(self, '正常', f'{网格.name}')
-                                            记录次数 += 1
-                                    elif 网格.children:
-                                        for 物体 in 网格.children:
-                                            递归(物体)
-                                if 骨架.parent:
-                                    递归(骨架.parent)
-                        递归(骨架)
-                        # for 物体 in 模型.parent.children:
-                        #     if 物体.小二预设模板.导入贴图:
-                        #         # for 群组 in 物体.小二预设模板.导入节点组:
-                        #         #     if 群组.节点组 == 材质节点组.node_tree:
-                        #         #         报告信息(self, '正常', f'{模型.name}材质Material["{材质.name}"] 同级网格物体{物体.name}')
-                        #                 记录次数 += 1
-                        #                 # break
-                    else:
-                        if 模型.小二预设模板.导入节点组:
-                            # for 群组 in 模型.小二预设模板.导入节点组:
-                            #     if 群组.节点组 == 材质节点组.node_tree:
-                            #         报告信息(self, '正常', f'{模型.name}材质Material["{材质.name}"]')
-                                    记录次数 += 1
-                                    # break
+                    def 记录(网格:XiaoerObject):
+                        nonlocal 记录次数  # 声明使用外层的记录次数
+                        if 网格.小二预设模板.导入贴图:
+                            记录次数 += 1
+                    回调(记录, 模型)
+
                     if 基础贴图.小二预设模板.匹配节点组:  # 检查贴图和材质节点组的使用情况
                         # self.report({"INFO"}, f"1当前字典键: {list(基础贴图匹配的节点组.items())}")
                         # self.report({"INFO"},f'检查点1：材质Material["{材质.name}"]材质节点组{材质节点组.node_tree.name}')
-                        # if 材质.小二预设模板.初始分类 not in ['头发材质', '皮肤材质', '衣服材质']:  # 1.1.0更新材质
-                        #     基础贴图.小二预设模板.匹配节点组 = 材质节点组.node_tree
-                        # else:
-                        #     材质节点组.node_tree = 基础贴图.小二预设模板.匹配节点组
                         材质节点组.node_tree = 基础贴图.小二预设模板.匹配节点组
                         光照贴图节点组 = 获取光照贴图节点组(游戏, 材质节点组)
                         # self.report({"INFO"},f'检查点2：材质Material["{材质.name}"]材质节点组{材质节点组.node_tree.name}')
@@ -201,12 +162,12 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
                     if not 光照贴图节点组:
                         报告信息(self, '异常', f'节点组["{材质节点组.name}"]未找到光照贴图节点组')
                     # self.report({"INFO"},f'检查点2：材质Material["{材质.name}"]光照贴图节点组{光照贴图节点组.node_tree.name}')
-                    光照贴图节点 = next((node for node in 光照贴图节点组.node_tree.nodes if node.type == 'TEX_IMAGE'),None)  # 找到ligthmap贴图节点
+                    光照贴图节点 = next((node for node in 光照贴图节点组.node_tree.nodes if node.type == 'TEX_IMAGE'), None)  # 找到ligthmap贴图节点
                     光照贴图 = 获取光照贴图(self, 游戏, 基础贴图)
                     if 光照贴图:
                         光照贴图节点.image = 光照贴图  # 应用光照贴图
                         报告信息(self, '正常', f'材质Material["{材质.name}"]输入光照贴图:Texture["{光照贴图.name}"]')
-                        光照贴图.colorspace_settings.name = 'Non-Color'  # 非彩色
+                        光照贴图.colorspace_settings.name = 'Non-Color'  # type:ignore
                     else:
                         报告信息(self, '异常', f'材质Material["{材质.name}"]的基础贴图["{基础贴图.name}"]未找到光照贴图')
                         # 1.1.0没有找到光照贴图，新建空白图像
@@ -220,7 +181,7 @@ def 小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, 材质类�
                         法线贴图节点.image = 法线贴图  # 应用法线贴图
                         报告信息(self, '正常', f'材质Material["{材质.name}"]输入法线贴图:Texture["{法线贴图.name}"]')
                         法线贴图节点.location = (-500, 1000)
-                        法线贴图.colorspace_settings.name = 'Non-Color'  # 非彩色
+                        法线贴图.colorspace_settings.name = 'Non-Color'  # type:ignore
                         材质.node_tree.links.new(法线贴图节点.outputs[0], 材质节点组.inputs[2])
                     # Ramp贴图
                     ramp节点组(self, 游戏, 材质, 材质节点组, 基础贴图, 多部件, 记录次数)

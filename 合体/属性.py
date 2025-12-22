@@ -49,3 +49,10 @@ def 注册属性():
             bpy.utils.register_class(cls)
         except:
             pass
+
+def 注销属性():
+    for clss in classes:
+        try:
+            bpy.utils.unregister_class(clss)
+        except:
+            pass

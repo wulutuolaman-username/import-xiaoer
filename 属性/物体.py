@@ -77,10 +77,6 @@ class XiaoerAddonModelPresetsTemplateInformation(XiaoerAddonPresetsTemplateInfor
         default="",
     )
 
-    @property
-    def 基础贴图枚举项(self):
-        """动态生成EnumProperty需要的三元组"""
-        return [(贴图.贴图.name, 贴图.贴图.name, "") for 贴图 in self.基础贴图]
     显示基础贴图: bpy.props.BoolProperty(  # 面板只显示所有基础贴图
         name="显示基础贴图",
         default=False,
