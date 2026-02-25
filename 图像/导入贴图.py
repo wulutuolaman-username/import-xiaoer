@@ -1,8 +1,6 @@
 # coding: utf-8
 
-import bpy, os, time
-import numpy as np
-from typing import cast
+import bpy, os, time, numpy as np  # noqa: F401
 from collections import defaultdict
 from ..材质.获取材质 import 获取材质
 from ..着色.贴图.基础贴图 import 筛选贴图, 筛选基础贴图
@@ -11,8 +9,9 @@ from ..图像.像素处理 import 检查透明
 from ..图像.匹配贴图.匹配贴图 import 匹配模型贴图和导入贴图
 from ..图像.匹配贴图.分割贴图 import 尝试匹配分割贴图
 from ..属性.属性 import 小二预设模板属性
-from ..偏好.偏好设置 import XiaoerAddonPreferences
-from ..指针 import XiaoerObject, XiaoerImage
+from ..属性.物体 import XiaoerAddonImage  # noqa: F401
+from ..偏好.偏好设置 import 小二偏好
+from ..指针 import *
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
@@ -23,7 +22,7 @@ except ImportError:
 匹配阈值 = 1e8
 
 # 导入解包贴图，与模型贴图进行哈希匹配
-def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 贴图路径, 文件路径, 游戏, 角色):
+def 导入贴图(self:bpy.types.Operator, 偏好:小二偏好, 模型:小二物体, 贴图路径, 文件路径, 游戏, 角色):
     # 1.1.0改进为分别计算红、绿、蓝三通道距离
     贴图查重 = []  # blender
     模型贴图 = []  # PIL
@@ -40,14 +39,14 @@ def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                     贴图查重.append(图像)
                     小二预设模板属性(图像.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
                     # Blender API 阻塞点（无法在子线程并行）,需要全部图像转为PIL图像再进行纯python计算
-                    贴图 = Image.open(图像.filepath).convert("RGBA")
+                    贴图 = Image.open(图像.filepath).convert("RGBA")  # type:Image.Image
                     # 贴图.save(os.path.join(输出目录, 图像.name))
                     像素 = np.array(贴图)
                     if np.all(像素 == 像素[0, 0]):  # 1.1.0纯色贴图不做哈希运算
                         self.report({"WARNING"}, f'“{图像.name}”为纯色贴图')
                     else:
                         if 筛选基础贴图(游戏, 图像):
-                            选项 = 模型.小二预设模板.基础贴图.add()
+                            选项 = 模型.小二预设模板.基础贴图.add()  # type:XiaoerAddonImage
                             选项.贴图 = 图像
                         elif not 图像.小二预设模板.匹配贴图:
                             模型贴图.append((贴图, 图像.name))
@@ -60,9 +59,10 @@ def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                     if 确认贴图(图像):
                         if 图像 in bpy.data.images:  # 1.1.0解包贴图已在模型中使用，则无须匹配直接后续使用
                             # self.report({"INFO"}, f"{图像} 已存在，无需导入")
-                            贴图 = cast(XiaoerImage, bpy.data.images[图像])
+                            贴图 = bpy.data.images[图像]  # type:小二贴图|bpy.types.Image
+                            # 贴图 = cast(小二贴图, bpy.data.images[图像])
                             if 贴图 not in 导入贴图:
-                                导入贴图.append(贴图)
+                                导入贴图.append(贴图)  # type:ignore
                             if not 贴图.pixels:
                                 贴图位置 = os.path.join(目录, 图像)  # 1.1.0强制字符串路径
                                 self.report({"INFO"}, f"重新加载" + str(贴图位置))
@@ -75,17 +75,17 @@ def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                             贴图位置 = os.path.join(目录, 图像)  # 1.1.0强制字符串路径
                             try:  # 导入图像到 Blender
                                 图像 = bpy.data.images.load(str(贴图位置))
-                                导入贴图.append(图像)
+                                导入贴图.append(图像)  # type:ignore
                                 # self.report({"INFO"}, f"导入成功：" + str(imagename))
                             except Exception as e:
                                 self.report({"ERROR"}, f"导入失败：{图像}\n{e}")
             if 导入贴图:
                 for 图像 in 导入贴图:
                     小二预设模板属性(图像.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
-                    选项 = 模型.小二预设模板.导入贴图.add()
+                    选项 = 模型.小二预设模板.导入贴图.add()  # type:XiaoerAddonImage
                     选项.贴图 = 图像
                     if 筛选基础贴图(游戏, 图像):
-                        选项 = 模型.小二预设模板.基础贴图.add()
+                        选项 = 模型.小二预设模板.基础贴图.add()  # type:XiaoerAddonImage
                         选项.贴图 = 图像
                         # Blender API 阻塞点（无法在子线程并行）,需要全部图像转为PIL图像再进行纯python计算
                         贴图 = Image.open(图像.filepath).convert("RGBA")
@@ -99,7 +99,7 @@ def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
 
         if not 模型.小二预设模板.完成匹配贴图 and 模型贴图:
             if 模型.小二预设模板.完成导入贴图 and not 基础贴图:
-                for 选项 in 模型.小二预设模板.基础贴图:
+                for 选项 in 模型.小二预设模板.基础贴图:  # type:XiaoerAddonImage
                     # 贴图 = bpy.data.images[图像]
                     图像 = 选项.贴图
                     # Blender API 阻塞点（无法在子线程并行）,需要全部图像转为PIL图像再进行纯python计算
@@ -109,31 +109,26 @@ def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                     像素 = np.array(贴图)
                     检查透明(偏好, 图像, 像素, 透明贴图)
             起始 = time.perf_counter()
-            匹配贴图, 模型贴图匹配过程 = 匹配模型贴图和导入贴图(模型, 模型贴图, 基础贴图)
+            匹配贴图, 模型贴图匹配过程 = 匹配模型贴图和导入贴图(模型, 模型贴图, 基础贴图, 偏好.匹配方式)
             if not 基础贴图:
-                self.report({"ERROR"}, f"{贴图路径} 未找到 {角色} 基础解包贴图")
-            if not 匹配贴图:
-                self.report({"ERROR"}, f"{贴图路径} 未找到 {角色} 匹配贴图")
-            def 距离合适(最小距离):  # 增加距离限制
-                if 最小距离 < 匹配阈值:
-                    return True
-                else:
-                    return False
+                self.report({"ERROR"}, f"{贴图路径} 未找到 {角色} 基础贴图")
+                if not 匹配贴图:
+                    self.report({"ERROR"}, f"{贴图路径} 未找到 {角色} 匹配贴图")
             if 模型贴图匹配过程:
+                算法距离 = 偏好.匹配方式 + "算法汉明距离"
                 for 原始名称 in 模型贴图匹配过程:
                     导入名称 = 匹配贴图[原始名称]
-                    原始贴图 = cast(XiaoerImage, bpy.data.images[原始名称])
-                    导入贴图 = cast(XiaoerImage, bpy.data.images[导入名称])
-                    # 距离合适 = 模型贴图匹配过程[原始名称][导入名称] < 距离阈值
+                    原始贴图 = bpy.data.images[原始名称]  # type:小二贴图|bpy.types.Image
+                    导入贴图 = bpy.data.images[导入名称]
                     self.report({"INFO"}, "".join(
-                        f"{原始名称} 与 {导入名称} 汉明距离: {汉明距离}\n"
+                        f"{原始名称} 与 {导入名称} {算法距离}: {汉明距离}\n"
                         for 导入名称, 汉明距离 in sorted(模型贴图匹配过程[原始名称].items(), key=lambda x: x[1]))+
-                        f"{原始名称} 匹配 {匹配贴图[原始名称]} （汉明距离最小）" if 距离合适(模型贴图匹配过程[原始名称][导入名称])
+                        f"{原始名称} 匹配 {导入名称} （{算法距离}最小）" if 模型贴图匹配过程[原始名称][导入名称] < 偏好.匹配阈值
                         else "".join(
-                        f"{原始名称} 与 {导入名称} 汉明距离: {汉明距离}\n"
+                        f"{原始名称} 与 {导入名称} {算法距离}: {汉明距离}\n"
                         for 导入名称, 汉明距离 in sorted(模型贴图匹配过程[原始名称].items(), key=lambda x: x[1]))+
-                        f"{原始名称} 与 {匹配贴图[原始名称]} 最小距离过大，尝试重新匹配贴图" )
-                    if 距离合适(模型贴图匹配过程[原始名称][导入名称]):
+                        f"{原始名称} 与 {导入名称} 最小距离过大，尝试重新匹配贴图" )
+                    if 模型贴图匹配过程[原始名称][导入名称] < 偏好.匹配阈值:
                         原始贴图.小二预设模板.匹配贴图 = 导入贴图
                     elif 原始贴图.size[0] / 原始贴图.size[1] == 1 and any(导入贴图.size[0] / 导入贴图.size[1] == 2 for 导入贴图, 导入名称 in 基础贴图):
                         匹配分割贴图, 模型贴图匹配分割贴图过程 = 尝试匹配分割贴图(self, 偏好, 模型, 游戏, 模型贴图, 基础贴图, 原始贴图, 原始名称, 贴图路径, 透明贴图)
@@ -141,14 +136,14 @@ def 导入贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                             导入名称 = 匹配分割贴图[原始名称]
                             导入贴图 = bpy.data.images[导入名称]
                             self.report({"INFO"}, "".join(
-                                f"{原始名称} 与 {导入名称} 汉明距离: {汉明距离}\n"
+                                f"{原始名称} 与 {导入名称} {算法距离}: {汉明距离}\n"
                                 for 导入名称, 汉明距离 in sorted(模型贴图匹配分割贴图过程[原始名称].items(), key=lambda x: x[1]))+
-                                f"{原始名称} 匹配 {匹配分割贴图[原始名称]} （汉明距离最小）" if 距离合适(模型贴图匹配分割贴图过程[原始名称][导入名称])
+                                f"{原始名称} 匹配 {匹配分割贴图[原始名称]} （{算法距离}最小）" if 模型贴图匹配分割贴图过程[原始名称][导入名称] < 偏好.匹配阈值
                                 else "".join(
-                                f"{原始名称} 与 {导入名称} 汉明距离: {汉明距离}\n"
+                                f"{原始名称} 与 {导入名称} {算法距离}: {汉明距离}\n"
                                 for 导入名称, 汉明距离 in sorted(模型贴图匹配分割贴图过程[原始名称].items(), key=lambda x: x[1]))+
                                 f"{原始名称} 与 {匹配分割贴图[原始名称]} 最小距离过大")
-                            if 距离合适(模型贴图匹配分割贴图过程[原始名称][导入名称]):
+                            if 模型贴图匹配分割贴图过程[原始名称][导入名称] < 偏好.匹配阈值:
                                 原始贴图.小二预设模板.匹配贴图 = 导入贴图
                         else:
                             self.report({"ERROR"}, f"未找到宽高比为2：1可分割的导入贴图")

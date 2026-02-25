@@ -1,23 +1,22 @@
 # coding: utf-8
 
-import bpy
-from typing import cast
-from ..通用.回调 import 回调
-from ..通用.设置 import 渲染设置
-from ..通用.剪尾 import 剪去后缀
-from ..通用.清理 import 清理贴图
-from ..通用.灯光 import 灯光驱动
-from ..通用.绑定 import 矩阵绑定
-from ..通用.改名 import 重命名贴图
-from ..几何.几何节点 import 几何节点
-from ..偏好.偏好设置 import XiaoerAddonPreferences
-from ..通用.递归 import 递归着色节点组, 递归几何节点组
-from ..属性.属性 import 小二预设模型属性, 小二预设材质属性, 小二预设贴图属性, 小二预设节点属性, 小二预设节点组属性
-from ..指针 import XiaoerObject, XiaoerMaterial, XiaoerNode, XiaoerShaderNodeTree, XiaoerGeometryNodeTree
+import bpy  # noqa: F401
+from ..通用.回调 import *
+from ..通用.设置 import *
+from ..通用.剪尾 import *  # type:ignore
+from ..通用.清理 import *  # type:ignore
+from ..通用.灯光 import *
+from ..通用.绑定 import *
+from ..通用.改名 import *
+from ..几何.几何节点 import *
+from ..偏好.偏好设置 import *  # type:ignore
+from ..通用.递归 import *
+from ..属性.属性 import *
+from ..指针 import *
 
 完成 = set()
 
-def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 文件路径, 角色, 数据源=None, 重命名=True):
+def 炒飞小二(self:bpy.types.Operator, 偏好:小二偏好, 模型:小二物体, 文件路径, 角色, 数据源=None, 重命名=True):
 
     # 1.1.2防止回调陷入死循环
     if 模型 in 完成:
@@ -29,12 +28,15 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
         self.report({"ERROR"}, f"{模型.name}未找到活动UV图层")
         return None
 
+    根基 = None
+    骨架 = 模型.parent  # type:小二物体|None
     UV图层.name = "UVMap"  # 统一活动UV图层名称，以便几何节点正确访问
     小二预设模型属性(模型, 文件路径, 角色)
-    if 模型.parent:
-        小二预设模型属性(模型.parent, 文件路径, 角色)
-        if 模型.parent.parent:
-            小二预设模型属性(模型.parent.parent, 文件路径, 角色)
+    if 骨架:
+        根基 = 骨架.parent  # type:小二物体|None
+        小二预设模型属性(骨架, 文件路径, 角色)
+        if 根基:
+            小二预设模型属性(根基, 文件路径, 角色)
     self.report({"INFO"}, f"{模型.name}导入预设文件：{文件路径}")
     if not 数据源:
         # 追加预设文件的所有资产
@@ -57,15 +59,29 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
     # 设置辉光属性和色彩管理
     渲染设置()
 
+    # 1.2.0可能有多个几何节点修改器:
+    for 容器 in 数据源.objects:
+        # 代码来源：小二老婆
+        if 容器.name.startswith("XIAOER_PRESET_CONTAINER"):
+            for 修改器 in 容器.modifiers:  # type:小二对象|bpy.types.Modifier
+                if 修改器.判断类型.修改器.是几何节点修改器 and 修改器.node_group:  # type:ignore
+                    新修改器 = 模型.新建修改器.几何节点修改器(修改器.name)
+                    新修改器.node_group = 修改器.node_group  # type:ignore
+                    for 属性 in 修改器.keys():
+                        try:
+                            新修改器[属性] = 修改器[属性]
+                        except:
+                            pass
+            break
+
     # 应用几何节点
-    for 节点组 in 数据源.node_groups:
+    for 节点组 in 数据源.node_groups:  # type:小二着色节点树|小二几何节点树|小二合成节点树
         # self.report({"INFO"}, f"{节点组}")
-        if 节点组.type == 'GEOMETRY' and (节点组.小二预设模板.应用修改器 or 节点组.users == 0):  # 未被使用的几何节点组
-            节点组:XiaoerGeometryNodeTree
+        if 节点组.判断类型.节点树.是几何节点树 and (节点组.小二预设模板.应用修改器 or 节点组.users == 0):  # 未被使用的几何节点组
             几何节点(模型, 节点组)  # 应用几何节点
-            for 节点 in 节点组.nodes:
-                if 节点.type == 'GROUP':
-                    递归几何节点组(self, 偏好, 数据源, 文件路径, 角色, 节点)
+            for 节点 in 节点组.nodes:  # type:小二节点
+                if 节点.判断类型.节点.是群组:
+                    递归节点组(self, 偏好, 数据源, 文件路径, 角色, 节点)
                 小二预设节点属性(节点, 文件路径, 角色)
         if 节点组.name.startswith("MMDTexUV") or 节点组.name.startswith("MMDShaderDev"):
             continue  # 如果是MMD固有节点组，无需后续重命名
@@ -144,9 +160,8 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
     for 材质 in 模型.data.materials:
         名称, 后缀 = 剪去后缀(材质.name)
         if 名称 not in 同名集合:
-            同名材质: [XiaoerMaterial] = []
-            for m in 模型.data.materials:
-                m = cast(XiaoerMaterial, m)
+            同名材质: [小二材质] = []
+            for m in 模型.data.materials:  # type:小二材质
                 if (
                     剪去后缀(m.name.replace(f'_{m.小二预设材质.角色}', '')
                     if m.小二预设材质.角色 and m.name.endswith(f'_{m.小二预设材质.角色}')
@@ -170,7 +185,8 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                         模型材质角色 = 模型材质.小二预设材质.角色
                         if 模型材质角色 and 模型材质.name.endswith(f'_{模型材质角色}'):
                             模型材质.name = 模型材质.name.rsplit('_', 1)[0]  # 材质可能重命名
-                        预设材质.name = 模型材质.name
+                        # 预设材质.name = 模型材质.name
+                        延迟改名(预设材质, 模型材质.name)  # 应用材质原名称
                         # if 偏好.重命名资产 and 偏好.重命名材质 and 重命名:  ############### 如果开启了连续导入 ###############
                         #     预设材质.name += "_" + 角色  # 网格材质重命名
                         break
@@ -178,26 +194,29 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
     # 替换网格材质
     for i, 模型材质 in enumerate(模型.data.materials):  # 在网格中遍历旧材质
         if 模型材质 not in 预设同名材质列表:
-            模型材质:XiaoerMaterial
+            模型材质:小二材质
             名称1, 后缀1 = 剪去后缀(模型材质.name)  # 连续导入模型，材质会产生后缀
             模型材质角色 = 模型材质.小二预设材质.角色
             if 模型材质角色 and 名称1.endswith(f'_{模型材质角色}'):
                 名称1 = 名称1.rsplit('_', 1)[0]  # 去掉材质重命名
-            模型材质.name = 名称1
-            for 预设材质 in 数据源.materials:  # 在追加材质中遍历新材质
+            # 模型材质.name = 名称1
+            延迟改名(模型材质, 名称1)
+            # 在追加材质中遍历新材质
+            for 预设材质 in 数据源.materials:  # type:小二材质
                 名称2, 后缀2 = 剪去后缀(预设材质.name)
                 if 名称1 == 名称2: # 匹配材质名称
                     小二预设材质属性(预设材质, 文件路径, 角色)
                     模型.data.materials[i] = 预设材质  # 替换材质
-                    预设材质.name = 名称1  # 应用材质原名称
+                    # 预设材质.name = 名称1
+                    延迟改名(预设材质, 名称1)  # 应用材质原名称
                     预设材质.小二预设材质.导入完成 = True
                     # if 偏好.重命名资产 and 偏好.重命名材质 and 重命名:  ############### 如果开启了连续导入 ###############
                     #     预设材质.name += "_" + 角色  # 网格材质重命名
                     break
     # 替换MMD变形材质
-    if 模型.parent and 模型.parent.parent and hasattr(模型.parent.parent, "mmd_root"):  # 1.1.1blender4.0似乎没有对应的mmd_tools插件
-        if 模型.parent.parent.mmd_root.material_morphs:
-            for 变形 in 模型.parent.parent.mmd_root.material_morphs:
+    if 根基 and hasattr(根基, "mmd_root"):  # 1.1.1blender4.0似乎没有对应的mmd_tools插件
+        if 根基.mmd_root.material_morphs:
+            for 变形 in 根基.mmd_root.material_morphs:
                 for 数据 in 变形.data:
                     # if 偏好.重命名资产 and 偏好.重命名材质 and 重命名:  ############### 如果开启了连续导入 ###############
                     #     数据.material = f"{数据.material[:-4]}_{角色}"  # 应用材质原名称后，旧材质名称出现后缀，通过减去后缀名称替换MMD变形材质
@@ -207,11 +226,10 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
 
     # 清理材质图像
     for 材质 in 模型.data.materials:
-        节点树 = cast(XiaoerShaderNodeTree, 材质.node_tree)
-        if 节点树:
-            for 节点 in 节点树.nodes:
-                节点:XiaoerNode
-                if 节点.type == 'TEX_IMAGE':
+        if 材质.use_nodes:
+            节点树 = 材质.node_tree  # type:小二着色节点树|bpy.types.ShaderNodeTree
+            for 节点 in 节点树.nodes:  # type:小二节点
+                if 节点.判断类型.节点.着色.是图像:
                     图像 = 节点.image  # type:ignore
                     if 图像:
                         名称, 后缀 = 剪去后缀(图像.name)
@@ -220,21 +238,25 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
                         清理贴图(self, 图像, 节点, 数据源, 'SHADER')
                         重命名贴图(偏好, 图像, 节点, 角色, 'SHADER')
                         小二预设贴图属性(图像, 文件路径, 角色)
-                if 节点.type == 'GROUP':
-                    递归着色节点组(self, 偏好, 数据源, 文件路径, 角色, 节点)
+                if 节点.判断类型.节点.是群组:
+                    递归节点组(self, 偏好, 数据源, 文件路径, 角色, 节点)
                     # 清理MMD固有节点组
-                    if 节点.node_tree.name.startswith("MMDTexUV") or 节点.node_tree.name.startswith("MMDShaderDev"):
-                        名称, 后缀 = 剪去后缀(节点.node_tree.name)
+                    MMD节点组 = 节点.node_tree
+                    if MMD节点组.name.startswith("MMDTexUV") or MMD节点组.name.startswith("MMDShaderDev"):
+                        名称, 后缀 = 剪去后缀(MMD节点组.name)
                         if 后缀:
                             节点组 = bpy.data.node_groups.get(名称)
                             if 节点组:
-                                # 1.1.1blender4.1出现替换MMD节点组后断连、输入参数重置
+                                # 1.1.1blender4.1、出现替换MMD节点组后断连、输入参数重置
+                                # 1.2.0blender5.0昔涟预设导入以后，MMD节点组断连
                                 # 首先记录替换前的连接、输入参数
                                 输入参数 = {}
                                 输入连接 = {}
                                 输出连接 = {}
-                                输入数量 = len(节点.inputs) > 0 and bpy.app.version[:2] == (4, 1)
-                                输出数量 = len(节点.outputs) > 0 and bpy.app.version[:2] == (4, 1)
+                                输入数量 = len(节点.inputs) > 0
+                                输出数量 = len(节点.outputs) > 0
+                                # 输入数量 = len(节点.inputs) > 0 and bpy.app.version[:2] == (4, 1)
+                                # 输出数量 = len(节点.outputs) > 0 and bpy.app.version[:2] == (4, 1)
                                 if 输入数量:
                                     for i, 输入 in enumerate(节点.inputs):
                                         if 输入.is_linked:
@@ -265,21 +287,29 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
             小二预设节点组属性(节点树, 文件路径, 角色)
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
 
+    # 1.2.0新预设XIAOER_PRESET_CONTAINER
+    for 物体 in list(数据源.objects):
+        try:
+            _ = 物体.name
+        except:  # 移除无效物体
+            数据源.objects.remove(物体)
+
     # 1.0.7确保驱动物体在模型集合中
-    for 物体 in 数据源.objects:
+    for 物体 in 数据源.objects:  # type:小二物体
+        # self.report({'INFO'}, f"{物体}")
         if 物体.name not in bpy.context.scene.collection.objects:
             bpy.context.scene.collection.objects.link(物体)  # 手动加入场景
         if 模型.users_collection:  # 检查选中模型是否在集合中
             for 集合 in 物体.users_collection:
                 集合.objects.unlink(物体)
             模型.users_collection[0].objects.link(物体)  # 将驱动物体移入模型集合
-        if 物体.type == 'LIGHT':
+        if 物体.判断类型.物体.是灯光:
             try:
                 灯光驱动(self, 物体)
             except:  # 1.1.0如果驱动失败
                 模型.select_set(True)
                 bpy.context.view_layer.objects.active = 模型
-        if 物体.type == 'EMPTY':  # 1.1.0 传入定位
+        if 物体.判断类型.物体.是空物体:  # 1.1.0 传入定位
             try:
                 矩阵绑定(self, 模型, 物体)  # 必须在关联集合后
             except:  # 1.1.0如果绑定失败
@@ -303,10 +333,10 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
         #         continue
         #     image.name = f"{image.name}_{角色}"  # 图像重命名  # 在清理材质图像时改变了属性，所以不可用
     if 偏好.重命名资产 and 偏好.重命名驱动物体 and 重命名:  ############### 如果开启了连续导入 ###############
-        for 物体 in 数据源.objects:
+        for 物体 in 数据源.objects:  # type:小二物体
             名称, 后缀 = 剪去后缀(物体.name)
             物体.name = 名称 + "_" + 角色  # 驱动物体重命名
-            if 物体.type == "LIGHT":
+            if 物体.判断类型.物体.是灯光:
                 名称, 后缀 = 剪去后缀(物体.data.name)
                 物体.data.name = 名称 + "_" + 角色  # 虚拟灯光数据块重命名
     if 偏好.重命名资产 and 偏好.重命名形态键:  ############### 如果开启了连续导入 ###############
@@ -327,46 +357,3 @@ def 炒飞小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
 
     bpy.ops.outliner.orphans_purge()  # 清除孤立数据
     self.report({"OPERATOR"}, f"{模型.name}完成预设导入")
-
-    # 骨架 = 模型.parent
-    # # if 骨架 and 骨架.type == 'ARMATURE' and len([模型 for 模型 in 骨架.children if 模型.type == 'MESH']) > 1:
-    # if 骨架:
-    #     def 递归(骨架):
-    #         if not 骨架.小二预设模型.导入完成:
-    #             骨架.小二预设模型.导入完成 = True
-    #             for 模型 in 骨架.children:  # 1.1.0fbx模型分离
-    #                 if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
-    #                     炒飞小二(self, 偏好, 模型, 文件路径, 角色, 数据源, 重命名=False)
-    #                 elif 模型.children:
-    #                     for 物体 in 模型.children:
-    #                         递归(物体)
-    #             if 骨架.parent:
-    #                 递归(骨架.parent)
-    #     递归(骨架)
-
-    # # 1.1.0清除导入的屏幕和工作区
-    # for 工作区 in 数据源.workspaces:
-    #     临时 = {'workspace': 工作区}  # 创建临时上下文删除工作区
-    #     bpy.ops.workspace.delete(临时)  # 删除当前工作区
-        # self.report({'INFO'}, f"删除工作区: {工作区.name}")
-        # 临时 = {'workspace': 工作区}  # 创建临时上下文删除工作区
-        # bpy.ops.workspace.delete(临时)  # 删除当前工作区
-        # 目前只有这种方式能删除工作区，但是被删除的工作区仍然使用屏幕
-        #
-        # 工作区.screens = [bpy.context.workspace.screens]
-        # AttributeError: bpy_struct: attribute "screens" from "WorkSpace" is read - only
-        #
-        # 工作区.screens.clear()
-        # AttributeError: 'bpy_prop_collection' object has no attribute 'clear'
-        # bpy.ops.screen.delete()无法删除屏幕，因为屏幕仍被已删除的工作区使用
-        # bpy.ops.screen.delete(override)将会闪退
-        #
-        # bpy.data.screens.remove(屏幕)
-        # AttributeError: 'bpy_prop_collection' object has no attribute 'remove'
-        #
-        # 工作区.screens.remove(屏幕)
-        # AttributeError: 'bpy_prop_collection' object has no attribute 'remove'
-        #
-        # bpy.ops.outliner.orphans_purge(do_recursive=True)  # 脚本触发无法删除未使用的屏幕，只有手动点击才能清除未使用的屏幕
-        #
-        # 如何通过bpy脚本删除屏幕？

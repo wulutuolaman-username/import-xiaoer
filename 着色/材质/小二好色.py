@@ -1,5 +1,6 @@
 # coding: utf-8
-import bpy
+
+import bpy  # noqa: F401
 from ...通用.回调 import 回调
 from ...通用.信息 import 报告信息
 from ...着色.贴图.基础贴图 import 匹配基础贴图
@@ -8,6 +9,7 @@ from ...着色.贴图.法线贴图 import 获取法线贴图
 from ...着色.混合.混合透明 import 混合透明, MMDalpha
 from ...通用.编号 import 节点组编号
 from ...材质.检测透明.检测透明 import 材质UV包含透明像素
+from ...着色.节点.判断类型 import 是图像
 from ...着色.节点.材质输出 import 获取材质输出节点
 from ...着色.节点.透明.透明节点 import 获取透明节点
 from ...着色.节点.透明.混合节点 import 获取混合节点
@@ -19,11 +21,11 @@ from ...着色.节点.贴图节点组.光照贴图节点组 import 获取光照�
 from ...着色.节点.贴图节点组.Ramp贴图节点组 import ramp节点组
 from ...着色.节点.贴图节点组.我的贴图节点组 import 我的贴图节点组
 from ...着色.贴图.空白贴图 import 获取空白贴图
-from ...偏好.偏好设置 import XiaoerAddonPreferences
-from ...指针 import XiaoerObject, XiaoerMaterial
+from ...偏好.偏好设置 import 小二偏好
+from ...指针 import *
 
 # 材质处理
-def 小二好色(self:bpy.types.Operator|None, 偏好:XiaoerAddonPreferences, 节点组列表, 材质:XiaoerMaterial, 透明贴图, 材质类型, 小二材质类型, 游戏, 模型:XiaoerObject, 材质面):
+def 小二好色(self:bpy.types.Operator|None, 偏好:小二偏好, 节点组列表, 材质:小二材质, 透明贴图, 材质类型, 小二材质类型, 游戏, 模型:小二物体, 材质面):
     if 材质.name in 模型.data.materials:
         """
         有基础贴图
@@ -123,7 +125,7 @@ def 小二好色(self:bpy.types.Operator|None, 偏好:XiaoerAddonPreferences, �
                     多部件 = False  # 1.1.0解决一种材质类型多个部件ramp贴图（如养乐多的丝柯克）
 
                     记录次数 = 0
-                    def 记录(网格:XiaoerObject):
+                    def 记录(网格:小二物体):
                         nonlocal 记录次数  # 声明使用外层的记录次数
                         if 网格.小二预设模板.导入贴图:
                             记录次数 += 1
@@ -162,8 +164,8 @@ def 小二好色(self:bpy.types.Operator|None, 偏好:XiaoerAddonPreferences, �
                     if not 光照贴图节点组:
                         报告信息(self, '异常', f'节点组["{材质节点组.name}"]未找到光照贴图节点组')
                     # self.report({"INFO"},f'检查点2：材质Material["{材质.name}"]光照贴图节点组{光照贴图节点组.node_tree.name}')
-                    光照贴图节点 = next((node for node in 光照贴图节点组.node_tree.nodes if node.type == 'TEX_IMAGE'), None)  # 找到ligthmap贴图节点
                     光照贴图 = 获取光照贴图(self, 游戏, 基础贴图)
+                    光照贴图节点 = next((节点 for 节点 in 光照贴图节点组.node_tree.nodes if 是图像(节点)), None)  # 找到ligthmap贴图节点
                     if 光照贴图:
                         光照贴图节点.image = 光照贴图  # 应用光照贴图
                         报告信息(self, '正常', f'材质Material["{材质.name}"]输入光照贴图:Texture["{光照贴图.name}"]')

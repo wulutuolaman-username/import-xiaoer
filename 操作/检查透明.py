@@ -1,5 +1,4 @@
 import os, bpy, numpy as np
-from typing import cast
 from collections import defaultdict
 from ..材质.检测透明.检测透明 import 通过UV和像素检测透明材质
 from ..材质.检测透明.材质面 import 获取材质面
@@ -8,7 +7,7 @@ from ..着色.贴图.基础贴图 import 筛选贴图
 from ..着色.贴图.空白贴图 import 获取空白贴图
 from ..图像.像素处理 import 检查透明
 from ..偏好.获取偏好 import 获取偏好
-from ..指针 import XiaoerMaterial
+from ..指针 import *
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
@@ -25,14 +24,14 @@ class XiaoerAddonCheckTransparent(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        模型 = context.active_object
-        return 模型 and 模型.type == 'MESH' and 模型.active_material
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
+        return 模型.判断类型.物体.是网格 and 模型.active_material
 
     def execute(self, context):
         偏好 = 获取偏好()
-        模型 = context.active_object
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
         材质面 = 获取材质面(self, 偏好, 模型)
-        材质 = cast(XiaoerMaterial, 模型.active_material)
+        材质 = 模型.active_material  # type:小二材质|bpy.types.Material
         图像, 节点 = 筛选贴图(self, 材质)
         if not 图像:
             self.report({"ERROR"}, f'材质Material["{材质.name}"]未找到贴图')
@@ -78,10 +77,10 @@ class XiaoerAddonCheckTransparent(bpy.types.Operator):
                 # self.report({"INFO"}, f'材质Material["{材质.name}"] 面像素点{面像素点}')
                 # self.report({"INFO"}, f'材质Material["{材质.name}"] 透明像素{透明像素点 & 面像素点}')
                 # if 透明占比 < 0.6:
-                for 区域 in bpy.context.screen.areas:
-                    if 区域.type == 'VIEW_3D':
+                for 区域 in bpy.context.screen.areas:  # type:小二对象|bpy.types.Area
+                    if 区域.判断类型.编辑器.是3D视图:
                         区域.spaces.active.shading.type = 'RENDERED'  # type:ignore
-                    if 区域.type == 'IMAGE_EDITOR':
+                    if 区域.判断类型.编辑器.是UV或图像编辑器:
                         区域.spaces.active.image = 图像
                 # bm = 材质面['bm'][0]
                 # bm.faces.ensure_lookup_table()  # 访问索引前刷新

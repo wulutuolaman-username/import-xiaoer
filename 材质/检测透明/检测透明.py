@@ -2,19 +2,18 @@ from .射线法 import 多点在面内
 from .面积法 import 相交面积
 from .判断透明 import 判断透明
 from ...通用.信息 import 报告信息
-import bpy, time
-import numpy as np
+import bpy, time, numpy as np
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from ...偏好.偏好设置 import XiaoerAddonPreferences
-from ...指针 import XiaoerMaterial
+from ...偏好.偏好设置 import 小二偏好
+from ...指针 import *
 
 # 用集合分别收集材质面在UV上的点坐标和贴图透明像素在UV上的点坐标，最后通过两个集合的交集判断透明
 材质面像素点 = defaultdict(set)
 像素面索引 = defaultdict(set)
 上次检测 = None
 
-def 通过UV和像素检测透明材质(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 材质, 图像, 透明贴图, 材质面):
+def 通过UV和像素检测透明材质(self:bpy.types.Operator, 偏好:小二偏好, 材质, 图像, 透明贴图, 材质面):
     if 透明贴图 and 图像 in 透明贴图:
         透明像素点 = 透明贴图[图像][0]  # alpha < 250
         完全透明像素点 = 透明贴图[图像][1]  # alpha < 20
@@ -64,9 +63,9 @@ def 通过UV和像素检测透明材质(self:bpy.types.Operator, 偏好:XiaoerAd
                     终止 = time.perf_counter()
                 报告信息(self, '正常', f'🕐 材质Material["{材质.name}"]在检测透明前分析材质面UV区域像素用时：{终止 - 起始:.6f} 秒')
             return 面像素点, 透明像素点, 完全透明像素点
-    return None, None, None, None
+    return None, None, None
 
-def 材质UV包含透明像素(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型, 材质:XiaoerMaterial, 图像, 透明贴图, 材质面):
+def 材质UV包含透明像素(self:bpy.types.Operator, 偏好:小二偏好, 模型, 材质:小二材质, 图像, 透明贴图, 材质面):
     if 偏好.检测透明材质:
         材质.小二预设模板.使用检测透明材质 = True
         面像素点, 透明像素点, 完全透明像素点 = 通过UV和像素检测透明材质(self, 偏好, 材质, 图像, 透明贴图, 材质面)

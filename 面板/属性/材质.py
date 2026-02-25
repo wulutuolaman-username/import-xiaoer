@@ -1,6 +1,5 @@
 import bpy
-from typing import cast
-from ...指针 import XiaoerObject, XiaoerMaterial
+from ...指针 import *
 
 class MaterialPanel(bpy.types.Panel):
     bl_idname = 'OBJECT_PT_import_xiaoer_material_1'
@@ -11,12 +10,12 @@ class MaterialPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        材质 = cast(XiaoerMaterial, context.material)
+        材质 = context.material  # type:小二材质|bpy.types.Material
         return 材质 and 材质.小二预设材质.使用插件
 
     def draw(self, context):
         布局 = self.layout
-        材质 = cast(XiaoerMaterial, context.material)
+        材质 = context.material  # type:小二材质|bpy.types.Material
 
         属性 = 材质.小二预设材质
 
@@ -37,13 +36,13 @@ class TemplateMaterialPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        材质 = cast(XiaoerMaterial, context.material)
+        材质 = context.material  # type:小二材质|bpy.types.Material
         return 材质 and 材质.小二预设模板.使用插件
 
     def draw(self, context):
         布局 = self.layout
-        模型 = cast(XiaoerObject, context.active_object)
-        材质 = cast(XiaoerMaterial, context.material)
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
+        材质 = context.material  # type:小二材质|bpy.types.Material
 
         属性 = 材质.小二预设模板
 

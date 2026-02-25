@@ -1,12 +1,12 @@
-import os, bpy
+import os, bpy  # noqa: F401
 from ..通用.改名 import 模型名称处理
 from ..通用.剪尾 import 剪去后缀
 from .处理文件 import 处理文件
 from .深度检索 import 深度检索
-from ..偏好.偏好设置 import XiaoerAddonPreferences
-from ..指针 import XiaoerObject
+from ..偏好.偏好设置 import 小二偏好
+from ..指针 import *
 
-def 查找预设(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject):
+def 查找预设(self:bpy.types.Operator, 偏好:小二偏好, 模型:小二物体):
 
     if not 偏好.预设目录 or not os.path.exists(偏好.预设目录):
         return None, None

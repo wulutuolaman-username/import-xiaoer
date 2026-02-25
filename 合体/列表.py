@@ -1,4 +1,4 @@
-from ..列表 import 游戏列表添加
+from ..列表 import *
 
 def 列表添加():
     游戏列表添加("崩坏三")

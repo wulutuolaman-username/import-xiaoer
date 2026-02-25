@@ -1,6 +1,6 @@
 import bpy
 import numpy as np
-from ..偏好.偏好设置 import XiaoerAddonPreferences
+from ..偏好.偏好设置 import 小二偏好
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
     from PIL import Image
@@ -30,7 +30,7 @@ def 获取像素(self, 图像):
     self.report({"WARNING"}, f'“{图像.name}”无像素')
     return np.array([])  # 返回空数组，使 像素.any() 返回 False
 
-def 检查透明(偏好:XiaoerAddonPreferences, 图像, 像素, 透明贴图):
+def 检查透明(偏好:小二偏好, 图像, 像素, 透明贴图):
     if 像素.ndim == 3 and 像素.shape[2] == 4:  # 确保是RGBA格式
         像素 = np.flipud(像素)  # 1.1.0再次垂直翻转图像（解决像素处理时翻转Y轴）
         新图 = Image.fromarray(像素, 'RGBA')

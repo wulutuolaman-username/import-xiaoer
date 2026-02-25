@@ -1,12 +1,11 @@
 import os, bpy, traceback
-from typing import cast
 from bpy.props import CollectionProperty, StringProperty
 from bpy_extras.io_utils import ImportHelper
 from ...查找.查找预设 import 查找预设
 from ...核心.导入模型预设 import 炒飞小二
 from ...通用.清理 import 清理MMD刚体材质
 from ...偏好.获取偏好 import 获取偏好
-from ...指针 import XiaoerObject
+from ...指针 import *
 
 class XiaoerAddonImportMatPresets(bpy.types.Operator):
     """ 自动导入所有模型预设 """
@@ -23,7 +22,16 @@ class XiaoerAddonImportMatPresets(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        return context.object is not None and context.object.type == 'MESH' and context.mode == 'OBJECT'
+        网格 = True
+        if len(context.selected_objects) > 0:
+            for 物体 in context.selected_objects:  # type:小二物体
+                if not 物体.判断类型.物体.是网格:
+                    网格 = False
+                    break
+        else:
+            网格 = False
+        return 网格 and context.mode == 'OBJECT'
+        # return all(物体.判断类型.物体.是网格 for 物体 in context.selected_objects) and context.mode == 'OBJECT'
 
     def execute(self, context):
         偏好 = 获取偏好()
@@ -32,8 +40,7 @@ class XiaoerAddonImportMatPresets(bpy.types.Operator):
                 模型列表 = []
                 for 模型 in bpy.context.selected_objects:  # 可能选择了多个物体
                     模型列表.append(模型)
-                for 模型 in 模型列表:
-                    模型:XiaoerObject
+                for 模型 in 模型列表:  # type:小二物体
                     if 模型.小二预设模型.导入完成 == True:
                         self.report({"INFO"}, f"{模型.name}已导入预设，在物体属性面板取消导入完成状态可再次导入")
                         continue
@@ -81,7 +88,8 @@ class XiaoerAddonImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
 
     @classmethod
     def poll(self, context):
-        return context.object is not None and context.object.type == 'MESH' and context.mode == 'OBJECT' and len(context.selected_objects) == 1
+        物体 = context.active_object  # type:小二物体|bpy.types.Object
+        return 物体 and 物体.判断类型.物体.是网格 and context.mode == 'OBJECT' and len(context.selected_objects) == 1
 
     def execute(self, context):
         偏好 = 获取偏好()
@@ -90,7 +98,7 @@ class XiaoerAddonImportMatPresetsFilebrowser(bpy.types.Operator, ImportHelper):
         角色 = 角色.replace("渲染", "")  # 去掉“渲染”字样（如果有）
         角色 = 角色.replace("预设", "")  # 去掉“预设”字样（如果有）
         self.report({"INFO"}, f"匹配名称：" + str(角色))
-        模型 = cast(XiaoerObject, bpy.context.object)  # 获取当前选中的模型
+        模型 = context.active_object  # type:小二物体|bpy.types.Object  # 获取当前选中的模型
         try:
             if 模型.小二预设模型.导入完成 == True:
                 self.report({"INFO"}, f"{模型.name}已导入预设，在物体属性面板取消导入完成状态可再次导入")

@@ -1,9 +1,9 @@
 import bpy, bmesh
 from collections import defaultdict
-from ...偏好.偏好设置 import XiaoerAddonPreferences
+from ...偏好.偏好设置 import 小二偏好
 
 # 1.1.0检测透明材质
-def 获取材质面(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:bpy.types.Object, 手动检测=False):
+def 获取材质面(self:bpy.types.Operator, 偏好:小二偏好, 模型:bpy.types.Object, 手动检测=False):
     UV图层 = 模型.data.uv_layers.active
     if not UV图层:
         self.report({"ERROR"}, f"{模型.name}未找到活动UV图层")

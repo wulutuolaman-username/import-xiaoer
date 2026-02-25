@@ -1,28 +1,28 @@
 # coding: utf-8
 
-import bpy
-from typing import cast
-from ..通用.设置 import 渲染设置
-from ..通用.灯光 import 灯光驱动
-from ..图像.导入贴图 import 导入贴图
-from ..材质.材质分类 import 材质分类
-from ..材质.检测透明.材质面 import 获取材质面
-from ..着色.材质.脸部着色 import 脸部着色
-from ..着色.材质.五官着色 import 五官着色
-from ..着色.材质.表情着色 import 表情着色
-from ..着色.材质.小二好色 import 小二好色
-from ..着色.节点.法线贴图转换 import 法线校正
-from ..着色.节点.崩铁头发光照合并颜色 import 移除崩铁头发光照合并颜色
-from ..着色.混合.混合透明 import MMDalpha
-from ..几何.设置描边 import 设置描边
-from ..通用.绑定 import 矩阵绑定
-from ..属性.属性 import 小二预设模板属性
-from ..偏好.偏好设置 import XiaoerAddonPreferences
-from ..指针 import XiaoerObject, XiaoerMaterial, XiaoerNode, XiaoerShaderNodeTree, XiaoerGeometryNodeTree, XiaoerCompositorNodeTree
+import bpy  # noqa: F401
+from ..通用.设置 import *
+from ..通用.灯光 import *
+from ..图像.导入贴图 import *
+from ..材质.材质分类 import *
+from ..材质.检测透明.材质面 import *
+from ..着色.材质.脸部着色 import *
+from ..着色.材质.五官着色 import *
+from ..着色.材质.表情着色 import *
+from ..着色.材质.小二好色 import *
+from ..着色.节点.法线贴图转换 import *
+from ..着色.节点.崩铁头发光照合并颜色 import *
+from ..着色.混合.混合透明 import *
+from ..几何.设置描边 import *
+from ..通用.绑定 import *
+from ..属性.属性 import *
+from ..属性.物体 import *  # noqa: F401
+from ..偏好.偏好设置 import *
+from ..指针 import *
 
 定位 = set()  # 1.1.0blender导入fbx可能有部分模型没有骨架修改器，如卡莲-原罪猎人
 
-def 干翻小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 游戏, 角色, 文件路径, 贴图路径):
+def 干翻小二(self:bpy.types.Operator, 偏好:小二偏好, 模型:小二物体, 游戏, 角色, 文件路径, 贴图路径):
 
     # 材质集合 = set()
     # def 添加材质(模型):
@@ -55,32 +55,30 @@ def 干翻小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
             数据流.materials = 数据源.materials
             数据流.node_groups = 数据源.node_groups
         # 追加物体移入选中网格的集合
-        for 物体 in 数据源.objects:
+        for 物体 in 数据源.objects:  # type:小二物体
             if 模型.users_collection:  # 检查选中模型是否在集合中
                 模型.users_collection[0].objects.link(物体)  # 将驱动物体移入新集合
-            if 物体.type == 'LIGHT':
+            if 物体.判断类型.物体.是灯光:
                 try:
                     灯光驱动(self, 物体)
                 except:  # 1.1.0如果驱动失败
                     模型.select_set(True)
                     bpy.context.view_layer.objects.active = 模型
-            if 物体.type == 'EMPTY':  # 1.1.0优化矩阵计算方式，不再出现X旋转-90°
+            if 物体.判断类型.物体.是空物体:  # 1.1.0优化矩阵计算方式，不再出现X旋转-90°
                 定位.add(物体)
 
         模型.select_set(True)
         bpy.context.view_layer.objects.active = 模型
 
         for 材质 in 数据源.materials:
-            for 节点 in 材质.node_tree.nodes:
-                节点: XiaoerNode
+            for 节点 in 材质.node_tree.nodes:  # type:小二节点
                 小二预设模板属性(节点.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
         # 收集节点组
         for 节点组 in 数据源.node_groups:
-            选项 = 模型.小二预设模板.导入节点组.add()
+            选项 = 模型.小二预设模板.导入节点组.add()  # type:XiaoerAddonNodeTree
             选项.节点组 = 节点组
-            节点组:XiaoerShaderNodeTree | XiaoerGeometryNodeTree | XiaoerCompositorNodeTree
-            for 节点 in 节点组.nodes:
-                节点: XiaoerNode
+            节点组: 小二着色节点树 | 小二几何节点树 | 小二合成节点树
+            for 节点 in 节点组.nodes:  # type:小二节点
                 小二预设模板属性(节点.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
             小二预设模板属性(节点组.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
         模型.小二预设模板.完成导入模板 = True
@@ -90,17 +88,17 @@ def 干翻小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
 
     节点组列表 = []
     if 模型.小二预设模板.导入节点组:
-        for 群组 in 模型.小二预设模板.导入节点组:
+        for 群组 in 模型.小二预设模板.导入节点组: # type:XiaoerAddonNodeTree
             节点组列表.append(群组.节点组)
     # elif 模型.parent:  # 1.1.0fbx模型分离
     #     for 物体 in 模型.parent.children:
     else:
         for 物体 in bpy.data.objects:
-            物体:XiaoerObject
+            物体:小二物体
             if 物体.小二预设模板.导入节点组:
-                for 群组 in 物体.小二预设模板.导入节点组:
+                for 群组 in 物体.小二预设模板.导入节点组:  # type:XiaoerAddonNodeTree
                     节点组列表.append(群组.节点组)
-                    选项 = 模型.小二预设模板.导入节点组.add()
+                    选项 = 模型.小二预设模板.导入节点组.add()  # type:XiaoerAddonNodeTree
                     选项.节点组 = 群组.节点组
                 break
 
@@ -153,14 +151,12 @@ def 干翻小二(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:
         小二好色(self, 偏好, 节点组列表, 材质, 透明贴图, "衣服", "clothes", 游戏, 模型, 材质面)
         # 小二预设模板属性(材质.node_tree.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
         # 小二预设模板属性(材质.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
-    for 材质 in 模型.data.materials:
-        材质:XiaoerMaterial
+    for 材质 in 模型.data.materials:  # type:小二材质
         if 材质.小二预设模板.加载完成:
-            节点树 = cast(XiaoerShaderNodeTree, 材质.node_tree)
+            节点树 = 材质.node_tree  # type:小二着色节点树|bpy.types.ShaderNodeTree
             小二预设模板属性(材质.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
             小二预设模板属性(节点树.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
-            for 节点 in 材质.node_tree.nodes:
-                节点:XiaoerNode
+            for 节点 in 材质.node_tree.nodes:  # type:小二节点
                 小二预设模板属性(节点.小二预设模板, 贴图路径, 文件路径, 游戏, 角色)
 
     # 1.1.0法线校正

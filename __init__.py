@@ -2,9 +2,9 @@
 
 bl_info = {
     "name": "导入小二",
-    "description": "基于小二节点，用于特定游戏模型预设的Blender插件",
+    "description": "基于小二节点，用于特定游戏模型渲染预设的Blender插件",
     "author": "五路拖拉慢",
-    "version": (1, 1, 2),
+    "version": (1, 2, 0),
     "blender": (3, 6, 0),
     "location": "View3D UI",
     "doc_url": "https://github.com/wulutuolaman-username/import-xiaoer/blob/main/README.md",
@@ -12,7 +12,7 @@ bl_info = {
     "category": "Import-Export"
 }
 
-from .偏好.偏好设置 import XiaoerAddonPreferences
+from .偏好.偏好设置 import *
 XiaoerAddonPreferences.bl_idname = bl_info["name"]
 
 from .更新 import register_updater

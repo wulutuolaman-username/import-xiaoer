@@ -1,6 +1,6 @@
 import bpy
-from ...图标 import 加载图标
-图标预览 = 加载图标()
+from ...图标 import 图标预览
+# 图标预览 = 加载图标()
 
 class XiaoerUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
@@ -16,7 +16,7 @@ class XiaoerUI(bpy.types.Panel):
         行 = 布局.row(align=True)
         行.operator(
             "xiaoer.open_website_bilibili",  # 操作符 ID
-            icon_value=图标预览["小二"].icon_id,   # 按钮图标
+            icon_value=图标预览["小二"],  # type: ignore
             emboss=False  # 隐藏按钮背景
         )
         左侧 = 行.split(factor=0.08, align=True)

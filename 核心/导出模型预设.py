@@ -2,54 +2,33 @@
 
 import os, bpy
 from ..通用.回调 import 回调
-from ..指针 import XiaoerObject, XiaoerGeometryNodeTree
+from ..指针 import *
 
-def 透透小二(self:bpy.types.Operator, 模型:XiaoerObject, 保存路径):
+def 透透小二(self:bpy.types.Operator, 模型:小二物体, 保存路径):
 
     保护 = {模型}
     def 保护模型(模型):
         保护.add(模型)
     回调(保护模型, 模型)
-    # 保护 = {模型}
-    # 骨架 = 模型.parent
-    # def 递归(骨架):
-    #     if 骨架.小二预设模板.加载完成 or 骨架.小二预设模型.导入完成:
-    #         if 骨架.小二预设模板.加载完成:
-    #             骨架.小二预设模板.加载完成 = False
-    #         if 骨架.小二预设模型.导入完成:
-    #             骨架.小二预设模型.导入完成 = False
-    #         for 物体 in 骨架.children:
-    #             if 模型.type == 'MESH' and not 模型.rigid_body:  # 排除面部定位和刚体
-    #                 保护.add(物体)
-    #             elif 模型.children:
-    #                 for 物体 in 模型.children:
-    #                     递归(物体)
-    #         if 骨架.parent:
-    #             递归(骨架.parent)
-    # # if 骨架 and 骨架.type == 'ARMATURE' and len([物体 for 物体 in 骨架.children if 物体.type == 'MESH']) > 1:
-    # if 骨架:
-    #     # for 物体 in 骨架.children:
-    #     #     if 物体.type == 'MESH':  # 面部定位
-    #     #         保护.add(物体)
-    #     递归(骨架)
 
     附加 = set()
     # 找到几何节点修改器
     def 几何节点修改器(模型):
-        for 修改器 in 模型.modifiers:
-            if 修改器.type == 'NODES':
+        for 修改器 in 模型.modifiers:  # type:小二对象|bpy.types.Modifier
+            if 修改器.判断类型.修改器.是几何节点修改器:
                 # self.report({'INFO'}, f"几何节点: {mod}")
-                节点组 = 修改器.node_group # type:XiaoerGeometryNodeTree
+                节点组: 小二几何节点树
+                节点组 = 修改器.node_group  # type:ignore
                 if 节点组:
                     节点组.小二预设模板.应用修改器 = False
-                    for 节点 in 节点组.nodes:
+                    for 节点 in 节点组.nodes:  # type:小二节点
                         # self.report({'INFO'}, f"遍历节点: {node.type}")
-                        if 节点.type == 'OBJECT_INFO' and 节点.inputs[0].default_value:  # type:ignore
+                        if 节点.判断类型.节点.几何.是物体信息 and 节点.inputs[0].default_value:  # type:ignore
                             # self.report({'INFO'}, f"物体节点: {node}")
                             # 找到几何节点中引用的物体
                             附加.add(节点.inputs[0].default_value)  # type:ignore
-    for 物体 in 保护:
-        if 物体.type == 'MESH':
+    for 物体 in 保护:  # type:小二物体
+        if 物体.判断类型.物体.是网格:
             几何节点修改器(物体)
     保护.update(附加)
     # 清除物体
@@ -72,10 +51,6 @@ def 透透小二(self:bpy.types.Operator, 模型:XiaoerObject, 保存路径):
 
     if "Dots Stroke" in bpy.data.materials:
         bpy.data.materials.remove(bpy.data.materials["Dots Stroke"])
-    # # 材质添加伪用户
-    # for 材质 in bpy.data.materials:
-    #     if 材质.users == 0:
-    #         材质.use_fake_user = True
 
     # 清除笔刷
     for 笔刷 in bpy.data.brushes:
@@ -85,14 +60,8 @@ def 透透小二(self:bpy.types.Operator, 模型:XiaoerObject, 保存路径):
     for 线条 in bpy.data.linestyles:
         bpy.data.linestyles.remove(线条)
 
-    # 清空网格数据
-    网格数量 = len([物体 for 物体 in 保护 if 物体.type == 'MESH'])
-    if 网格数量 == 1:
-        bpy.data.meshes.remove(bpy.data.meshes[模型.name.replace("_mesh", "")])
-    elif 网格数量 > 1:  # 1.1.0fbx模型分离
-        for 物体 in 保护:
-            if 物体.type == 'MESH':
-                bpy.data.meshes.remove(bpy.data.meshes[物体.name.replace("_mesh", "")])
+    for 网格 in bpy.data.meshes:  # 1.2.0清除全部网格
+        bpy.data.meshes.remove(网格)
 
     # 节点组添加伪用户
     for 节点组 in bpy.data.node_groups:

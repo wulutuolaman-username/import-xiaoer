@@ -3,17 +3,17 @@ from typing import TYPE_CHECKING
 
 # 1.1.2只在类型检查时导入，避免运行时循环导入
 if TYPE_CHECKING:
-    from ..偏好.偏好设置 import XiaoerAddonPreferences
-    from ..指针 import XiaoerMaterial
+    from ..偏好.偏好设置 import *
+    from ..指针 import *
 
 # Python 允许类型注解写字符串 → 不会触发 import → 也就不会循环导入
-def 更新基础贴图alpha连接(self:'XiaoerAddonPreferences', context:bpy.types.Context):
+def 更新基础贴图alpha连接(self: '小二偏好', context:bpy.types.Context):
     from ..着色.节点.材质节点组.材质节点组 import 搜索材质节点组
     from ..着色.节点.贴图.基础贴图 import 搜索基础贴图节点
-    物体 = context.active_object
-    if 物体 and 物体.type == 'MESH':
+    物体 = context.active_object  # type:小二物体|bpy.types.Object
+    if 物体.判断类型.物体.是网格:
         # print(context.active_object.name)
-        for 材质 in 物体.data.materials:  # type:XiaoerMaterial
+        for 材质 in 物体.data.materials:  # type:小二材质
             材质节点组 = 搜索材质节点组(材质)
             基础贴图节点 = 搜索基础贴图节点(材质)
             if 基础贴图节点 and 材质节点组 and len(材质节点组.inputs) > 1 and "alpha" in 材质节点组.inputs[1].name.lower():

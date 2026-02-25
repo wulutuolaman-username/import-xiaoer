@@ -1,4 +1,5 @@
-import bpy
+import bpy  # noqa: F401
+from ...指针 import *
 
 # 1.0.4全选模型
 class SelectAllMeshes(bpy.types.Operator):
@@ -16,10 +17,10 @@ class SelectAllMeshes(bpy.types.Operator):
         # 取消活动对象（激活对象）
         bpy.context.view_layer.objects.active = None
         # 遍历所有对象，找到骨架及其子网格模型
-        for 骨架 in bpy.data.objects:
-            if 骨架.type == 'ARMATURE':
-                for 模型 in 骨架.children:
-                    if 模型.type == 'MESH' and 模型.data.shape_keys: #1.1.0增加形态键判断
+        for 骨架 in bpy.data.objects:  # type:小二物体
+            if 骨架.判断类型.物体.是骨架:
+                for 模型 in 骨架.children:  # type:小二物体
+                    if 模型.判断类型.物体.是网格 and (模型.data.shape_keys or "Bip001_Head" in 模型.vertex_groups): #1.1.0增加形态键判断  # 1.2.0增加fbx骨骼权重顶点组判断
                         # 1.1.1检查Blender版本是否小于4.0
                         if bpy.app.version[0] < 4:
                             模型.select = True
@@ -27,7 +28,8 @@ class SelectAllMeshes(bpy.types.Operator):
                             模型.select_set(True)
                         context.view_layer.objects.active = 模型  # ✅ 设置为激活对象
                         self.report({"INFO"}, f'已选中 {模型.name}')
-                    elif 模型.type != 'MESH':
+                        break
+                    elif not 模型.判断类型.物体.是网格:
                         self.report({"WARNING"}, f'{模型.name}非网格类型')
                     elif not 模型.data.shape_keys:
                         self.report({"WARNING"}, f'{模型.name}无形态键，可能不是角色模型')

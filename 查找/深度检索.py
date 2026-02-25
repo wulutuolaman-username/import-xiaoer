@@ -1,5 +1,4 @@
-import os, bpy, tempfile
-from typing import cast
+import os, bpy, tempfile  # noqa: F401
 from .处理文件 import 处理文件
 from ..图像.筛选贴图 import 确认贴图
 from ..图像.导入贴图 import 匹配阈值
@@ -7,7 +6,7 @@ from ..通用.剪尾 import 剪去后缀
 from ..材质.材质分类 import 材质分类
 from ..着色.贴图.基础贴图 import 筛选贴图, 筛选基础贴图
 from ..图像.匹配贴图.匹配贴图 import 匹配模型贴图和导入贴图
-from ..指针 import XiaoerImage
+from ..指针 import *
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
@@ -94,7 +93,7 @@ def 深度检索(self:bpy.types.Operator, 模型, 候选路径, 游戏=None):
                         if 确认贴图(文件):   # 刻晴「霓裾翩跹」Hair贴图实为黑丝贴图
                             # 名称 = os.path.splitext(图像)[0]
                             图像路径 = os.path.join(目录, 文件)
-                            图像 = cast(XiaoerImage, bpy.data.images.load(str(图像路径)))
+                            图像 = bpy.data.images.load(str(图像路径))  # type:小二贴图|bpy.types.Image
                             if 筛选基础贴图(游戏, 图像):
                                 贴图 = Image.open(图像路径).convert("RGBA")
                                 基础贴图.append((贴图, 路径))

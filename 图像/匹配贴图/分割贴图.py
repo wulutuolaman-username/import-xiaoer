@@ -1,12 +1,10 @@
-import os
-import bpy
-import numpy as np
-from typing import cast
+import os, bpy, numpy as np  # noqa: F401
 from .匹配贴图 import 匹配模型贴图和导入贴图
 from ..像素处理 import 检查透明
 from ...着色.贴图.光照贴图 import 获取光照贴图
-from ...偏好.偏好设置 import XiaoerAddonPreferences
-from ...指针 import XiaoerObject, XiaoerImage
+from ...属性.物体 import XiaoerAddonImage  # noqa: F401
+from ...偏好.偏好设置 import 小二偏好
+from ...指针 import *
 
 global Image  #  1.0.1更新：不再直接导入PIL
 try:
@@ -16,14 +14,15 @@ except ImportError:
 
 分割贴图 = []
 
-def 尝试匹配分割贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 游戏, 模型贴图, 基础贴图, 原始贴图, 原始名称, 贴图路径, 透明贴图):
+def 尝试匹配分割贴图(self:bpy.types.Operator, 偏好:小二偏好, 模型:小二物体, 游戏, 模型贴图, 基础贴图, 原始贴图, 原始名称, 贴图路径, 透明贴图):
     for 贴图, 名称 in 模型贴图:
         if 名称 == 原始名称:
             目标贴图 = 贴图
             if not 分割贴图:
                 for 贴图, 名称 in 基础贴图:
                     宽度, 高度 = 贴图.size
-                    图像 = cast(XiaoerImage, bpy.data.images[名称])
+                    图像 = bpy.data.images[名称]  # type:小二贴图|bpy.types.Image
+                    # 图像 = cast(小二贴图, bpy.data.images[名称])
                     前缀 = 图像.小二预设模板.前缀
                     部件 = 图像.小二预设模板.部件
                     类型 = 图像.小二预设模板.类型
@@ -41,7 +40,7 @@ def 尝试匹配分割贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferen
                                 分割贴图并导入(self, 贴图, 宽度, 高度, 前缀, 部件, 类型, 扩展, 光照贴图.name, 贴图路径)
                 基础贴图.extend(分割贴图)
             if 分割贴图:
-                return 匹配模型贴图和导入贴图(None, [(目标贴图, 原始名称)], 分割贴图)
+                return 匹配模型贴图和导入贴图(None, [(目标贴图, 原始名称)], 分割贴图, 偏好.匹配方式)
             break
     return None, None
 
@@ -53,7 +52,8 @@ def 分割贴图并导入(self, 贴图, 宽度, 高度, 前缀, 部件, 类型, 
         图名 = f"{前缀}_{部件}{编号}_{类型}{扩展}"
         路径 = os.path.join(贴图路径, 图名)
         图像.save(路径)
-        导入贴图 = cast(XiaoerImage, bpy.data.images.load(str(路径)))
+        导入贴图 = bpy.data.images.load(str(路径))  # type:小二贴图|bpy.types.Image
+        # 导入贴图 = cast(小二贴图, bpy.data.images.load(str(路径)))
         # 导入完成后删除本地图像文件
         if os.path.exists(路径):
             导入贴图.pack()
@@ -67,10 +67,10 @@ def 分割贴图并导入(self, 贴图, 宽度, 高度, 前缀, 部件, 类型, 
     self.report({"INFO"}, f"分割{名称}\n左图{左名}\n右图{右名}")
     return 左图, 左名, 右图, 右名
 
-def 添加基础贴图(偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 图像, 名称, 分割贴图, 透明贴图):
+def 添加基础贴图(偏好:小二偏好, 模型:小二物体, 图像, 名称, 分割贴图, 透明贴图):
     分割贴图.append((图像, 名称))
     像素 = np.array(图像)
     图像 = bpy.data.images[名称]
-    选项 = 模型.小二预设模板.基础贴图.add()
+    选项 = 模型.小二预设模板.基础贴图.add()  # type:XiaoerAddonImage
     选项.贴图 = 图像
     检查透明(偏好, 图像, 像素, 透明贴图)

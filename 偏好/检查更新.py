@@ -1,6 +1,9 @@
 import bpy
 from ..更新 import AddonUpdaterManager
 
+# 1.2.0明确导出列表
+__all__ = ['XiaoerAddonCheckUpdate']
+
 # 代码来源：https://github.com/MMD-Blender/blender_mmd_tools/blob/blender-v3/mmd_tools/preferences.py
 class XiaoerAddonCheckUpdate:
 
@@ -14,7 +17,8 @@ class XiaoerAddonCheckUpdate:
             col.scale_y = 2
             col.alert = True
             col.operator(
-                "wm.quit_blender",
+                # "wm.quit_blender",
+                "import_xiaoer.restart_blender",
                 text="重启Blender完成更新",
                 icon="ERROR"
             )

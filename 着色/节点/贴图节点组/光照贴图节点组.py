@@ -1,12 +1,13 @@
-# 找到ligthmap节点组
+from ..判断类型 import *
+
 def 获取光照贴图节点组(游戏, 材质节点组):
 ###################################################################################################
     if 游戏 == "崩坏三" or 游戏 == "原神":
-        return next((节点 for 节点 in 材质节点组.node_tree.nodes if 节点.type == 'GROUP' and
+        return next((节点 for 节点 in 材质节点组.node_tree.nodes if 是群组(节点) and
                      节点.node_tree.name.startswith("lig")), None)
 ###################################################################################################
     if 游戏 == "崩坏：星穹铁道":
-        return next((节点 for 节点 in 材质节点组.node_tree.nodes if 节点.type == 'GROUP' and
+        return next((节点 for 节点 in 材质节点组.node_tree.nodes if 是群组(节点) and
                      节点.node_tree.name.startswith("ilm")), None)
 ###################################################################################################
     return None

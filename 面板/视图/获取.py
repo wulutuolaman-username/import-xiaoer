@@ -1,6 +1,6 @@
 import bpy
-from ...图标 import 加载图标
-图标预览 = 加载图标()
+from ...图标 import 图标预览
+# 图标预览 = 加载图标()
 
 class GetMatPresetsUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
@@ -15,11 +15,11 @@ class GetMatPresetsUI(bpy.types.Panel):
         列.operator(
             "xiaoer.open_website_afdian",  # 操作符 ID
             text="爱发电",
-            icon_value=图标预览["爱发电"].icon_id   # 按钮图标
+            icon_value=图标预览["爱发电"]  # type: ignore
         )
         列 = 行.column(align=True)
         列.operator(
             "xiaoer.open_website_aplaybox",  # 操作符 ID
             text="模之屋",
-            icon_value=图标预览["模之屋"].icon_id   # 按钮图标
+            icon_value=图标预览["模之屋"]  # type: ignore
         )

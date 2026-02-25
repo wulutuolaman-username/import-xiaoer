@@ -1,11 +1,12 @@
 import bpy
 from ..属性.预设 import XiaoerAddonPresetsInformation
 from ..属性.模板 import XiaoerAddonPresetsTemplateInformation
-from ..属性.物体 import XiaoerAddonModelPresetsTemplateInformation, XiaoerAddonMaterial, XiaoerAddonImage, XiaoerAddonNodeTree
+from ..属性.物体 import XiaoerAddonModelPresetsInformation, XiaoerAddonModelPresetsTemplateInformation, XiaoerAddonMaterial, XiaoerAddonImage, XiaoerAddonNodeTree
 from ..属性.材质 import XiaoerAddonMaterialPresetsTemplateInformation
 from ..属性.图像 import XiaoerAddonImagePresetsTemplateInformation, XiaoerAddonImageNodeTree
 from ..属性.节点 import XiaoerAddonNodePresetsTemplateInformation
 from ..属性.几何 import XiaoerAddonGeometryNodeTreePresetsTemplateInformation
+from ..属性.窗口 import XiaoerAddonWindowManagerInformation
 from ..面板.属性.物体 import ModelObjectPanel, TemplateObjectPanel
 from ..面板.属性.材质 import MaterialPanel, TemplateMaterialPanel
 from ..面板.图像.图像 import ImagePanel, TemplateImagePanel
@@ -21,12 +22,14 @@ classes = (
     XiaoerAddonImageNodeTree,
 
     XiaoerAddonPresetsInformation,
+    XiaoerAddonModelPresetsInformation,
     XiaoerAddonPresetsTemplateInformation,
     XiaoerAddonModelPresetsTemplateInformation,
     XiaoerAddonMaterialPresetsTemplateInformation,
     XiaoerAddonImagePresetsTemplateInformation,
     XiaoerAddonNodePresetsTemplateInformation,
     XiaoerAddonGeometryNodeTreePresetsTemplateInformation,
+    XiaoerAddonWindowManagerInformation,
 
     ModelObjectPanel,
     MaterialPanel,

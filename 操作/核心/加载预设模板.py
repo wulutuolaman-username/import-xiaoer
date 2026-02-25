@@ -1,13 +1,12 @@
 import os, bpy, traceback
-from typing import cast
 from ...核心.加载预设模板 import 干翻小二
 from ...查找.查找贴图 import 查找贴图
 from ...通用.改名 import 模型名称处理
 from ...通用.路径 import 获取模型路径
 from ...偏好.获取偏好 import 获取偏好
 from ...偏好.获取游戏 import 获取游戏
-from ...指针 import XiaoerObject
 from ...通用.回调 import 回调
+from ...指针 import *
 
 class XiaoerAddonExecuteTemplate(bpy.types.Operator):
     """ 只选中一个模型，选择游戏加载预设模板，设置描边材质，连接节点组 """
@@ -16,10 +15,11 @@ class XiaoerAddonExecuteTemplate(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        return context.object is not None and context.object.type == 'MESH' and context.mode == 'OBJECT' and len(context.selected_objects) == 1  # 1.1.0只支持一个模型
+        物体 = context.active_object  # type:小二物体|bpy.types.Object
+        return 物体 and 物体.判断类型.物体.是网格 and context.mode == 'OBJECT' and len(context.selected_objects) == 1  # 1.1.0只支持一个模型
 
     def execute(self, context):
-        模型 = cast(XiaoerObject, context.active_object)
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
         偏好 = 获取偏好()
         游戏 = 获取游戏()
         文件 = True

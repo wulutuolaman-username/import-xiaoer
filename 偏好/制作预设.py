@@ -1,8 +1,12 @@
-import bpy
-from .更新状态 import 更新基础贴图alpha连接
-from ..列表 import GameTemplateItem
-from ..图标 import 加载图标
-图标预览 = 加载图标()
+import os, bpy  # noqa: F401
+from .更新状态 import *
+from ..列表 import *
+from ..图标 import *
+
+# 图标预览 = 加载图标()
+
+# 1.2.0明确导出列表
+__all__ = ['XiaoerAddonOpenMakingAssets']
 
 class XiaoerAddonOpenMakingAssets:
 
@@ -12,18 +16,31 @@ class XiaoerAddonOpenMakingAssets:
         default=True
     )  # 1.0.3新增
 
-    贴图目录: bpy.props.StringProperty(
-        name="贴图目录",
-        description="设置贴图文件的搜索根目录",
-        # subtype='DIR_PATH',
-        # update=lambda self, context: None,
-    )
-
     导入贴图: bpy.props.BoolProperty(
         name="导入贴图",
         description="先在偏好设置中设置包含贴图文件的目录，开启后可以导入贴图",
         default=True
     )
+
+    # 1.2.0增加边缘算法
+    def 更新匹配阈值(self, context):
+        if self.匹配方式 == '像素':
+            self.匹配阈值 = int(1e8)
+        if self.匹配方式 == '边缘':
+            self.匹配阈值 = 300
+        return None
+    匹配方式: bpy.props.EnumProperty(
+        name="匹配方式",
+        description="不同算法匹配模型贴图和基础贴图",
+        items=[
+        ('像素', "像素", "经过几百个模型测试，模型贴图与基础贴图匹配准确率接近100%，如果模型贴图被改动会降低匹配准确率"),
+        ('边缘', "边缘", "使用Sobel算法进行边缘检测，可以解决爻光的衣N贴图匹配失败问题，未经过大范围测试进一步检验准确性"),  # 1.2.0增加边缘哈希算法
+        ],
+        default='像素',
+        update=更新匹配阈值,
+    )
+    匹配阈值: bpy.props.IntProperty(default=int(1e8))
+
     贴图来源: bpy.props.EnumProperty(  # 1.1.2改为枚举属性
         name="材质分类",
         description="材质分类结果，可修改类型重新查找节点组",
@@ -34,7 +51,12 @@ class XiaoerAddonOpenMakingAssets:
         ],
         default='指定',
     )
-
+    贴图目录: bpy.props.StringProperty(
+        name="贴图目录",
+        description="设置贴图文件的搜索根目录",
+        # subtype='DIR_PATH',
+        # update=lambda self, context: None,
+    )
     贴图文件夹: bpy.props.StringProperty(
         name="贴图文件夹",
         description="直接导入贴图的路径",
@@ -84,7 +106,7 @@ class XiaoerAddonOpenMakingAssets:
     绝区零模板路径: bpy.props.StringProperty(name="绝区零模板路径", description="设置绝区零模板文件路径")
     鸣潮模板路径: bpy.props.StringProperty(name="鸣潮模板路径", description="设置鸣潮模板文件路径")
 
-    def 开启制作(self, 布局):
+    def 开启制作(self, 布局:bpy.types.UILayout):
         行 = 布局.row()  # 1.0.3新增
         列 = 行.column()
         列.prop(self, "开启制作预设", text="  开启制作预设面板 需自备贴图和预设模板")
@@ -114,12 +136,21 @@ class XiaoerAddonOpenMakingAssets:
             # 模板路径设置
             def 设置模板路径(游戏, 操作):
                 from ..偏好.获取偏好 import 获取偏好
+                偏好 = 获取偏好()
                 行 = 布局.row(align=True)  # 关键点：align=True 确保子元素对齐
                 左侧 = 行.split(factor=0.1)  # 分割行，左侧占10%宽度
-                左侧.template_icon(icon_value=图标预览[游戏].icon_id, scale=2)  # 图标放在左侧
+                左侧.template_icon(icon_value=图标预览[游戏], scale=2)  # type: ignore
                 右侧 = 左侧.column(align=True)  # 右侧子行
                 路径 = f'{游戏.replace("：", "")}模板路径'  # 崩坏：星穹铁道变量名不能有冒号
-                右侧.prop(获取偏好(), 路径, text=游戏, icon='BLENDER')
+                # 1.2.0检查模板路径是否有效
+                模板路径 = getattr(偏好, f'{游戏.replace("：", "")}模板路径')
+                if 模板路径 and (not os.path.exists(模板路径) or not 模板路径.endswith(".blend")):
+                    右侧.alert = True
+                    右侧.label(text=f"无效路径：{模板路径}")
+                    if not 模板路径.endswith(".blend"):
+                        右侧.label(text=f"请选择blend文件")
+                else:
+                    右侧.prop(偏好, 路径, text=游戏, icon='BLENDER')
                 键 = 右侧.operator(操作, icon='BLENDER')
                 键.属性 = 路径  # 将路径属性名传递给操作符
             设置模板路径("崩坏三", "xiaoer.set_honkai3_path")

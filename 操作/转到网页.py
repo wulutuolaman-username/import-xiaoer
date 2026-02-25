@@ -1,4 +1,4 @@
-import bpy,webbrowser
+import bpy, webbrowser
 
 class OpenWebsite(bpy.types.Operator):
     bl_idname = "xiaoer.open_website"

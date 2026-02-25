@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
+from ...指针 import *  # noqa: F401
 
 if TYPE_CHECKING:
-    from ...指针 import XiaoerMaterial
     from ...属性.材质 import XiaoerAddonMaterialPresetsTemplateInformation
 # 前向引用
 # Python 不会在运行时解析这个名字
@@ -12,13 +12,14 @@ def 更新材质(self:"XiaoerAddonMaterialPresetsTemplateInformation", context):
     if self.材质分类 and self.更新分类 and self.材质分类 != self.更新分类:
         from ...偏好.获取偏好 import 获取偏好
         from ...偏好.获取游戏 import 获取游戏
+        from ...指针 import 小二材质
         偏好 = 获取偏好()
         游戏 = 获取游戏()
-        模型 = context.active_object
-        if 模型.type == 'MESH':
-            节点组列表 = []
-            if 模型 and 模型.active_material:
-                材质 = 模型.active_material  # type:XiaoerMaterial
+        模型 = context.active_object  # type:小二物体
+        if 模型.判断类型.物体.是网格:
+            材质 = 模型.active_material  # type:小二材质|bpy.types.Material
+            if 材质:
+                节点组列表 = []
                 # print(f'\n更新材质{材质.name} 为{self.材质分类}材质')
                 材质.小二预设模板.混合模式 = 材质.blend_method
                 材质.小二预设模板.显示背面 = 材质.show_transparent_back
@@ -32,7 +33,7 @@ def 更新材质(self:"XiaoerAddonMaterialPresetsTemplateInformation", context):
                 from ...着色.材质.五官着色 import 五官着色
                 from ...着色.材质.表情着色 import 表情着色
                 from ...着色.材质.小二好色 import 小二好色
-                if 材质.小二预设模板.材质分类 == '脸部':
+                if   材质.小二预设模板.材质分类 == '脸部':
                     脸部着色(None, 偏好, 节点组列表, 材质, None, 游戏, 模型)
                 elif 材质.小二预设模板.材质分类 == '五官':
                     五官着色(None, 偏好, 节点组列表, 材质, None, 游戏, 模型, None)

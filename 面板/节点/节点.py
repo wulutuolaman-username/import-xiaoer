@@ -1,6 +1,5 @@
 import bpy
-from typing import cast
-from ...指针 import XiaoerNode
+from ...指针 import *
 
 class NodePanel(bpy.types.Panel):
     bl_idname = 'NODE_PT_import_xiaoer_node_1'
@@ -11,12 +10,12 @@ class NodePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点 = cast(XiaoerNode, context.active_node)
+        节点 = context.active_node  # type:小二节点|bpy.types.Node
         return 节点 and 节点.小二预设节点.使用插件
 
     def draw(self, context):
         布局 = self.layout
-        节点 = cast(XiaoerNode, context.active_node)
+        节点 = context.active_node  # type:小二节点|bpy.types.Node
         属性 = 节点.小二预设节点
 
         列 = 布局.column()
@@ -36,12 +35,12 @@ class TemplateNodePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点 = cast(XiaoerNode, context.active_node)
+        节点 = context.active_node  # type:小二节点|bpy.types.Node
         return 节点 and 节点.小二预设模板.使用插件
 
     def draw(self, context):
         布局 = self.layout
-        节点 = cast(XiaoerNode, context.active_node)
+        节点 = context.active_node  # type:小二节点|bpy.types.Node
         属性 = 节点.小二预设模板
 
         列 = 布局.column()

@@ -1,6 +1,7 @@
 # coding: utf-8
 
-import bpy
+import bpy  # noqa: F401
+from ..指针 import *
 
 # 设置辉光属性和色彩管理
 def 渲染设置():
@@ -29,50 +30,50 @@ def 渲染设置():
         if bpy.app.version[:2] < (5, 0):
             # <blender_console>:1: DeprecationWarning: 'Scene.use_nodes' is expected to be removed in Blender 6.0
             bpy.context.scene.use_nodes = True
-            节点树 = bpy.context.scene.node_tree
+            节点树 = bpy.context.scene.node_tree  # type:小二合成节点树|bpy.types.CompositorNodeTree
         else:
             节点树 = bpy.context.scene.compositing_node_group  # type:ignore
             if not 节点树:
-                名称 = "小二插件：合成器节点"
+                名称 = "小二插件：合成器节点组"
                 bpy.ops.node.new_compositing_node_group(name=名称)  # type:ignore
                 节点树 = bpy.context.scene.compositing_node_group = bpy.data.node_groups.get(名称)  # type:ignore
         def 找到辉光(群组:bpy.types.Scene|bpy.types.NodeGroup):
             nonlocal 辉光
-            for 节点 in 群组.node_tree.nodes:  # type:bpy.types.NodeGroup
-                if 节点.type == 'GROUP':
+            for 节点 in 群组.node_tree.nodes:  # type:小二节点|bpy.types.NodeGroup
+                if 节点.判断类型.节点.是群组:
                     找到辉光(节点)
-                if 节点.type == 'GLARE':
+                if 节点.判断类型.节点.合成.是辉光:
                     辉光 = 节点
                 if 辉光:
                     break
-        for 节点 in 节点树.nodes:  # type:bpy.types.NodeGroup
-            if 节点.type == 'R_LAYERS':
+        for 节点 in 节点树.nodes:  # type:小二节点|bpy.types.NodeGroup
+            if 节点.判断类型.节点.合成.是渲染层:
                 渲染 = 节点
-            if 节点.type in ['COMPOSITE','GROUP_OUTPUT']:
+            if 节点.判断类型.节点.合成.是合成 or 节点.判断类型.节点.是组输出:
                 合成 = 节点
-            if 节点.type == 'VIEWER':
+            if 节点.判断类型.节点.合成.是预览器:
                 预览 = 节点
-            if 节点.type == 'GROUP':
+            if 节点.判断类型.节点.是群组:
                 找到辉光(节点)
-            if 节点.type == 'GLARE':
+            if 节点.判断类型.节点.合成.是辉光:
                 辉光 = 节点
             if 渲染 and 辉光 and 合成 and 预览:
                 break
         if not 辉光:
             if not 渲染:
-                渲染 = 节点树.nodes.new("CompositorNodeRLayers")
+                渲染 = 节点树.新建节点.渲染层
             if not 合成:
                 if bpy.app.version[:2] < (5, 0):
-                    合成 = 节点树.nodes.new("CompositorNodeComposite")
+                    合成 = 节点树.新建节点.合成
                 else:  # blender 5.0 合成器只有组输出
-                    合成 = 节点树.nodes.new("NodeGroupOutput")
+                    合成 = 节点树.新建节点.组输出
                     # 节点树.outputs.new('NodeSocketColor', "颜色")
             if not 预览:
-                预览 = 节点树.nodes.new("CompositorNodeViewer")
+                预览 = 节点树.新建节点.预览器
                 预览.location.x = 合成.location.x
                 预览.location.y = 合成.location.y - 150
 
-            辉光 = 节点树.nodes.new("CompositorNodeGlare")
+            辉光 = 节点树.新建节点.辉光
             辉光.name = "小二插件：辉光节点"
             if bpy.app.version[:2] < (5, 0):
                 辉光.glare_type = 'BLOOM'
@@ -96,9 +97,9 @@ def 渲染设置():
 
             # 辉光节点输出优先连接转接点
             if 合成接口.is_linked:
-                节点 = 合成接口.links[0].from_node  # 与合成相连的节点
+                节点 = 合成接口.links[0].from_node  # type:小二节点  # 与合成相连的节点
                 输出接口 = 合成接口.links[0].from_socket
-                if 节点.type == 'REROUTE':  # 转接点
+                if 节点.判断类型.节点.是转接点:
                     输入接口 = 节点.inputs[0]
                     输出接口 = 输入接口.links[0].from_socket
                     右位 = min(右位, 节点.location.x)
@@ -114,8 +115,8 @@ def 渲染设置():
                 节点树.links.new(辉光.outputs[0], 合成接口)
                 节点树.links.new(辉光.outputs[0], 预览接口)
             if 预览接口.is_linked:
-                节点 = 预览接口.links[0].from_node  # 与预览相连的节点
-                if 节点.type == 'REROUTE':  # 转接点
+                节点 = 预览接口.links[0].from_node  # type:小二节点  # 与预览相连的节点
+                if 节点.判断类型.节点.是转接点:
                     右位 = min(右位, 节点.location.x)
                     节点树.links.new(辉光.outputs[0], 节点.inputs[0])
             节点树.links.new(输出接口, 辉光.inputs[0])
@@ -127,7 +128,7 @@ def 渲染设置():
                     连接.to_node.location.x  += 500 - 间隔
             辉光.location.x = (右位 + 左位) / 2 + 50
             辉光.location.y = 合成.location.y
-            区域 = 节点树.nodes.new(type='NodeFrame')
+            区域 = 节点树.新建节点.帧
             区域.location = 辉光.location
             区域.label = 辉光.name
             辉光.parent = 区域

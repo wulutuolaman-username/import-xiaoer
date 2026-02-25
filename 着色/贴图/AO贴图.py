@@ -1,9 +1,9 @@
 # coding: utf-8
 
 import os, bpy
-from ...指针 import XiaoerImage
+from ...指针 import *
 
-def 获取AO贴图(游戏, 基础贴图:XiaoerImage) -> XiaoerImage|None:
+def 获取AO贴图(游戏, 基础贴图:小二贴图) -> 小二贴图 | None:
     if 基础贴图.小二预设模板.类型:
         前缀 = 基础贴图.小二预设模板.前缀
         部件 = 基础贴图.小二预设模板.部件

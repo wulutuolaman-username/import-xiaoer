@@ -1,5 +1,8 @@
 import bpy
 
+# 1.2.0明确导出列表
+__all__ = ['XiaoerAddonPresetsTemplateInformation']
+
 class XiaoerAddonPresetsTemplateInformation(bpy.types.PropertyGroup):
     """ 小二插件模型预设模板信息 """
 

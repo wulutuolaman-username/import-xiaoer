@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import bpy
+import bpy  # noqa: F401
 from ...通用.信息 import 报告信息
 from ...着色.贴图.基础贴图 import 匹配基础贴图
 from ...着色.混合.混合透明 import 混合透明, MMDalpha
@@ -11,10 +11,10 @@ from ...着色.节点.透明.混合节点 import 获取混合节点
 from ...着色.节点.贴图.基础贴图 import 获取基础贴图节点
 from ...材质.检测透明.检测透明 import 材质UV包含透明像素
 from ...着色.节点.材质节点组.调色节点组 import 获取材质节点组
-from ...偏好.偏好设置 import XiaoerAddonPreferences
-from ...指针 import XiaoerObject, XiaoerMaterial
+from ...偏好.偏好设置 import 小二偏好
+from ...指针 import *
 
-def 五官着色(self:bpy.types.Operator|None, 偏好:XiaoerAddonPreferences, 节点组列表, 材质:XiaoerMaterial, 透明贴图, 游戏, 模型:XiaoerObject, 材质面):
+def 五官着色(self:bpy.types.Operator|None, 偏好:小二偏好, 节点组列表, 材质:小二材质, 透明贴图, 游戏, 模型:小二物体, 材质面):
     if 材质.name in 模型.data.materials:
         """
         有基础贴图

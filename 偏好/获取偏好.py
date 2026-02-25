@@ -1,6 +1,5 @@
 import bpy
-from typing import cast
-from .偏好设置 import XiaoerAddonPreferences
+from .偏好设置 import *
 
-def 获取偏好() -> XiaoerAddonPreferences:
-    return cast(XiaoerAddonPreferences, bpy.context.preferences.addons[XiaoerAddonPreferences.bl_idname].preferences)
+def 获取偏好() -> 小二偏好|bpy.types.AddonPreferences:
+    return bpy.context.preferences.addons[XiaoerAddonPreferences.bl_idname].preferences

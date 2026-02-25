@@ -1,7 +1,6 @@
 import bpy
-from typing import cast
 from ...偏好.获取偏好 import 获取偏好
-from ...指针 import XiaoerMaterial
+from ...指针 import *
 
 class UVPanel(bpy.types.Panel):
     bl_idname = 'UV_PT_import_xiaoer_UV'
@@ -13,9 +12,8 @@ class UVPanel(bpy.types.Panel):
     def draw(self, context):
         偏好 = 获取偏好()
         布局 = self.layout
-        模型 = context.active_object
-        网格 = 模型 and 模型.type == 'MESH'
-        if 网格:
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
+        if 模型.判断类型.物体.是网格:
             行 = 布局.row()
             行.label(text=模型.name, icon='MESH_DATA')
             行 = 布局.row()
@@ -31,14 +29,19 @@ class UVPanel(bpy.types.Panel):
         行 = 布局.row()
         行.operator("object.material_slot_select")
         行.operator("object.material_slot_deselect")
-        if 网格:
-            材质 = cast(XiaoerMaterial, 模型.active_material)
+        if 模型.判断类型.物体.是网格:
+            材质 = 模型.active_material  # type:小二材质|bpy.types.Material
             if 材质:
-                列 = 布局.column()
+                行 = 布局.row(align=True)
+                列 = 行.column()
+                列.ui_units_x = 6  # 设置固定宽度单位
+                列.enabled = 偏好.检测透明材质
                 列.prop_enum(偏好, "检测方式", '射线')  # 1.1.2
                 列.prop_enum(偏好, "检测方式", '面积')  # 1.1.2
-                行 = 布局.row()
-                行.operator("import_xiaoer.check_transparent", text="检查透明材质")
+                列 = 行.column()
+                列.scale_y = 2.0  # 让这一行更宽
+                列.prop(偏好, "检测透明材质", text="检测透明材质", icon='MATERIAL')  # 1.1.0
+
                 列 = 布局.column()
                 列.prop(材质, "use_backface_culling")
                 列.prop(材质, "blend_method")

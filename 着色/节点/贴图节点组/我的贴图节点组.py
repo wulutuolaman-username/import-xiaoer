@@ -5,15 +5,16 @@ from ...贴图.光照贴图 import 获取光照贴图
 from ...贴图.法线贴图 import 获取法线贴图
 from ...贴图.AO贴图 import 获取AO贴图
 from ...混合.混合透明 import 混合透明
-from ....偏好.偏好设置 import XiaoerAddonPreferences
-from ....指针 import XiaoerMaterial, XiaoerImage
+from ....偏好.偏好设置 import 小二偏好
+from ....指针 import *
 
-def 我的贴图节点组(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 节点组列表, 材质:XiaoerMaterial, 材质节点组, 游戏, 基础贴图:XiaoerImage, 材质类型, 透明贴图, 基础贴图透明, 材质输出节点):
+def 我的贴图节点组(self:bpy.types.Operator, 偏好:小二偏好, 节点组列表, 材质:小二材质, 材质节点组, 游戏, 基础贴图:小二贴图, 材质类型, 透明贴图, 基础贴图透明, 材质输出节点):
     if 材质类型 == "皮肤":  # 皮肤材质通常使用衣服贴图
         材质类型 = "衣服"
-    贴图节点组 = 材质.node_tree.nodes.new(type='ShaderNodeGroup')  # 新建贴图节点组
-    for 节点组 in 节点组列表:
-        if 节点组.type == 'SHADER' and f"{材质类型}贴图" in 节点组.name:  # 搜索贴图节点组
+    节点树 = 材质.node_tree   # type:小二着色节点树|bpy.types.ShaderNodeTree
+    贴图节点组 = 节点树.新建节点.群组
+    for 节点组 in 节点组列表:   # type:小二着色节点树
+        if 节点组.判断类型.节点树.是着色节点树 and f"{材质类型}贴图" in 节点组.name:  # 搜索贴图节点组
             # self.report({"INFO"}, f'调试{texture_node_group_name}')
             贴图节点组.location = (-500, 1500)  # 定位贴图节点组
             if 基础贴图.小二预设模板.匹配节点组:  # 检查此类材质是否有多个基础色贴图

@@ -1,11 +1,11 @@
 # coding: utf-8
 
-import os, bpy
+import os, bpy  # noqa: F401
 from typing import Tuple
 from ...通用.信息 import 报告信息
-from ...指针 import XiaoerImage
+from ...指针 import *
 
-def 获取Ramp贴图(self, 游戏, 基础贴图:XiaoerImage) -> XiaoerImage|None|Tuple[XiaoerImage|None, XiaoerImage|None]:
+def 获取Ramp贴图(self, 游戏, 基础贴图:小二贴图) -> 小二贴图 | None | Tuple[小二贴图 | None, 小二贴图 | None]:
     if 基础贴图.小二预设模板.类型:
         前缀 = 基础贴图.小二预设模板.前缀
         部件 = 基础贴图.小二预设模板.部件
@@ -17,19 +17,19 @@ def 获取Ramp贴图(self, 游戏, 基础贴图:XiaoerImage) -> XiaoerImage|None
             # 优先严格匹配贴图名称
             新名 = 名称.replace(类型, Ramp)
             # 报告信息(self, '正常', f'基础贴图“{名称}”尝试搜索ramp贴图“{新名}')
-            for 贴图 in bpy.data.images:  # type:XiaoerImage
+            for 贴图 in bpy.data.images:  # type:小二贴图
                 名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
                 if 名.lower() == 新名.lower():  # 忽略大小写
                     return 贴图
             # 1.1.0宽松匹配：只通过“部件“和”贴图类型”两个条件，通过基础贴图名称找到其他贴图
-            for 贴图 in bpy.data.images:  # type:XiaoerImage
+            for 贴图 in bpy.data.images:  # type:小二贴图
                 名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
                 if f"_{部件.rstrip('_')}".lower() in 名.lower() and 名.lower().endswith(Ramp.lower()):
                     报告信息(self, '正常', f'基础贴图“{基础贴图.name}”宽松匹配找到可能的ramp贴图“{贴图.name}')
                     return 贴图
             if 部件 and 部件[-1].isdigit():
                 部件 = 部件[:-1]
-            for 贴图 in bpy.data.images:  # type:XiaoerImage
+            for 贴图 in bpy.data.images:  # type:小二贴图
                 名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
                 # 如果基础贴图部件为Body1、Body2，而ramp贴图部件为Body，去掉部件的数字
                 if f"_{部件.rstrip('_')}".lower() in 名.lower() and 名.lower().endswith(Ramp.lower()):
@@ -42,7 +42,7 @@ def 获取Ramp贴图(self, 游戏, 基础贴图:XiaoerImage) -> XiaoerImage|None
                 冷图 = None
                 暖图 = None
                 # 报告信息(self, '正常', f"{暖}\n{冷}")
-                for 贴图 in bpy.data.images:  # type:XiaoerImage
+                for 贴图 in bpy.data.images:  # type:小二贴图
                     名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
                     # if "Ramp" in 名:
                     #     报告信息(self, '正常', f"{名} {名 == 冷} {名 == 暖}")
@@ -75,7 +75,8 @@ def 获取Ramp贴图(self, 游戏, 基础贴图:XiaoerImage) -> XiaoerImage|None
 
                 冷图, 暖图 = 崩铁Ramp(冷, 暖)
                 # 报告信息(self, '正常', f"{冷图}\n{暖图}")
-                if 冷图 or 暖图:
+                # if 冷图 or 暖图:
+                if 暖图:  # 1.2.0必须有暖图
                     return 冷图, 暖图
                 else:
                     if 当前部件:
@@ -83,7 +84,24 @@ def 获取Ramp贴图(self, 游戏, 基础贴图:XiaoerImage) -> XiaoerImage|None
                     else:
                         暖 = f"{当前前缀}_Ramp"
                     冷图, 暖图 = 崩铁Ramp(冷, 暖)
-                    if 冷图 or 暖图:
+                    # if 冷图 or 暖图:
+                    if 暖图:  # 1.2.0必须有暖图
                         return 冷图, 暖图
+
+            # 1.2.0 不检测前缀，只通过部件搜索Ramp Avatar_Pear_00_Hair_Warm_Ramp Avatar_Pearl_00_Hair_Color
+            冷图 = None
+            暖图 = None
+            for 贴图 in bpy.data.images:  # type:小二贴图
+                名, 类 = os.path.splitext(os.path.basename(贴图.filepath))  # 分割文件名和扩展名  # 防止名称长度限制
+                if 部件:
+                    if 部件 in 名:
+                        if 名.endswith("Warm_Ramp"):
+                            暖图 = 贴图
+                        if 名.endswith("Cool_Ramp"):
+                            冷图 = 贴图
+                if 暖图 and 冷图:
+                    break
+            if 暖图:  # 1.2.0必须有暖图
+                return 冷图, 暖图
             return None, None
 ###################################################################################################

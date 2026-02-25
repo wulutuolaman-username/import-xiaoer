@@ -201,7 +201,7 @@ def 分离多边形_按重合段拆分(多边形, 裁剪器, tol=1e-9, round_dec
                 # 如果 p,q 均位于该水平线上（近似共线），考虑插点
                 if abs(p[1] - y0) < tol and abs(q[1] - y0) < tol:
                     # 找到该边区间内需要插入的 x 值
-                    s_min, s_max = min(p[0], q[0]), max(p[0], q[0])
+                    s_min, s_max = min(p[0], q[0]), max(p[0], q[0])  # type:ignore
                     cand_xs = [x for x in split_positions_per_edge[edge_idx] if (s_min + tol) < x < (s_max - tol)]
                     # 计算沿边的参数 t 并按方向排序
                     if len(cand_xs) > 0:
@@ -214,7 +214,7 @@ def 分离多边形_按重合段拆分(多边形, 裁剪器, tol=1e-9, round_dec
                             for t, x in sorted(zip(ts, cand_xs), key=lambda it: it[0]):
                                 if tol < t < 1 - tol:
                                     pt = p + t * (q - p)
-                                    seg_pts.append(tuple(np.round(pt, round_decimals)))
+                                    seg_pts.append(tuple(np.round(pt, round_decimals)))  # type:ignore
             elif is_v:
                 x0 = ca[0]
                 if abs(p[0] - x0) < tol and abs(q[0] - x0) < tol:
@@ -228,7 +228,7 @@ def 分离多边形_按重合段拆分(多边形, 裁剪器, tol=1e-9, round_dec
                             for t, y in sorted(zip(ts, cand_ys), key=lambda it: it[0]):
                                 if tol < t < 1 - tol:
                                     pt = p + t * (q - p)
-                                    seg_pts.append(tuple(np.round(pt, round_decimals)))
+                                    seg_pts.append(tuple(np.round(pt, round_decimals)))  # type:ignore
 
         # 将本段的插入点按从 p -> q 的方向去重排序后加入 new_pts（注意可能多个裁剪边贡献插点）
         # 首先按参数 t 排序（计算 t 的方式：若 q-p 沿 x 更显著则用 x 否则用 y）

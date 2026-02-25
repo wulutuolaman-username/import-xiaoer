@@ -1,9 +1,9 @@
-import bpy, traceback
-
+import bpy
+from .信息 import 输出错误
 灯光名称 = "小二预设灯光控制"
 
 # 1.1.0控制灯光
-def 灯光驱动(self, 灯光):
+def 灯光驱动(self:bpy.types.Operator, 灯光):
     if not 灯光.parent:
         # 灯光控制 = bpy.context.scene.collection.objects.get("小二预设灯光控制")
         灯光控制 = bpy.data.objects.get(灯光名称)
@@ -24,5 +24,4 @@ def 灯光驱动(self, 灯光):
                     灯光控制.use_fake_user = True
                     集合.objects.unlink(灯光控制)
                 except Exception as e:
-                    错误信息 = "".join(traceback.format_exception(type(e), e, e.__traceback__))
-                    self.report({"ERROR"}, f"灯光移除集合失败\n{错误信息}")
+                    输出错误(self, e, "灯光移除集合失败")

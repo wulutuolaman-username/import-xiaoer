@@ -1,5 +1,7 @@
-import bpy
-from ...操作.模块.安装模块 import 检查轮子存在
+import bpy, site, importlib  # noqa: F401
+from ..刷新 import *
+from ...模块 import *
+from ...指针 import *
 
 class InformationFeedbackUI(bpy.types.Panel):
     bl_category = "导入小二"  # 侧边栏标签
@@ -11,47 +13,61 @@ class InformationFeedbackUI(bpy.types.Panel):
     def draw(self, context):
         布局 = self.layout
 
-        # 添加按钮
         行 = 布局.row()
-        模块 = True
-        try:
-            import numpy
-            行.label(text=f"numpy {numpy.__version__}")
-        except:
-            模块 = False
-            行.label(text="numpy模块异常", icon='ERROR')
+        from ...__init__ import bl_info
+        行.label(text=f"插件版本 " + ".".join(map(str, bl_info["version"])))
+
+        # importlib.invalidate_caches()  # 重新扫描可导入模块
+        # site.main()  # 重新加载 site-packages 路径，让新安装的包进入 sys.path
+
+        窗口 = context.window_manager  # type:小二窗口|bpy.types.WindowManager
+
+        模块正常 = True
+        # 1.2.0面板显示安装进度
+        def 显示安装情况(模块):
+            nonlocal 模块正常
+            行 = 布局.row()
+            try:
+                行.label(text=f"{导入名称[模块]} {获取版本(模块)}")
+            except:
+                模块正常 = False
+                行.alert = True
+                if   安装状态[模块] in ["正在下载", "正在安装"]:
+                    框 = 行.box()
+                    bpy.app.timers.register(刷新3D视图UI面板, first_interval=0.1)
+                    框.label(text=f"{模块}模块{安装状态[模块]}......", icon='SCRIPTPLUGINS')
+                    框.label(text=f"{安装状态[模块][-2:]}进度 {窗口.小二预设模板.已下载:.2f} / {窗口.小二预设模板.总大小:.2f}MB")
+                elif 安装状态[模块] == "安装失败":
+                    行.label(text=f"{模块}模块安装失败", icon='ERROR')
+                else:
+                    行.label(text=f"{模块}模块未安装", icon='ERROR')
+        for 模块 in 模块列表:
+            显示安装情况(模块)
 
         行 = 布局.row()
-        try:
-            import PIL
-            行.label(text=f"PIL {PIL.__version__}")
-        except:
-            模块 = False
-            行.alert = True
-            行.label(text="PIL模块未安装", icon='ERROR')
-
-        行 = 布局.row()
-        try:
-            import imagehash
-            行.label(text=f"imagehash {imagehash.__version__}")
-        except:
-            模块 = False
-            行.alert = True
-            行.label(text="imagehash模块未安装", icon='ERROR')
-
-        行 = 布局.row()
-        if 模块:
+        if 模块正常:
             行.label(text="模块已安装成功", icon='CHECKBOX_HLT')
         else:
             行.alert = True
             行.label(text="模块导入失败", icon='ERROR')
-
-        if 检查轮子存在():
             行 = 布局.row()
-            列 = 行.column()
-            列.operator("import_xiaoer.install_packages", icon='IMPORT')
-            列 = 行.column()
-            列.operator("import_xiaoer.uninstall_packages", icon='TRASH')
+            行.operator("wm.console_toggle", icon='CONSOLE')
+            行 = 布局.row()
+            行.operator("import_xiaoer.restart_blender", icon='BLENDER')
+
+        # if 检查轮子存在():
+        行 = 布局.row()
+        列 = 行.column()
+        列.operator("import_xiaoer.install_packages", icon='IMPORT')
+        列 = 行.column()
+        列.operator("import_xiaoer.uninstall_packages", icon='TRASH')
+        # elif not 模块正常:
+        #     行 = 布局.row()
+        #     行.operator(
+        #         "wm.url_open",
+        #         text="下载本地版安装模块",
+        #         icon='TRIA_DOWN_BAR'
+        #     ).url = "https://www.aplaybox.com/details/model/j8uwC55rjW4G"
 
         行 = 布局.row()
         行.scale_y = 2

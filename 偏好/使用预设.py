@@ -1,5 +1,8 @@
 import bpy
 
+# 1.2.0明确导出列表
+__all__ = ['XiaoerAddonImortSettings']
+
 class XiaoerAddonImortSettings:
 
     自动查找预设: bpy.props.BoolProperty(
@@ -16,7 +19,7 @@ class XiaoerAddonImortSettings:
 
     预设目录: bpy.props.StringProperty(
         name="预设目录",
-        description="设置预设文件的搜索根目录",
+        description="导出预设文件和自动查找预设的搜索根目录",
         # subtype='DIR_PATH'
     )
 

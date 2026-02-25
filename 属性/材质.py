@@ -3,6 +3,21 @@ from ..着色.更新.更新材质 import 更新材质
 from ..着色.更新.更新透明 import 更新透明
 from .模板 import XiaoerAddonPresetsTemplateInformation
 
+# class 材质分类判断器:
+#     def __init__(self, 值): self._值 = 值
+#     @property
+#     def 是脸部(self) -> bool: return self._值 == '脸部'
+#     @property
+#     def 是五官(self) -> bool: return self._值 == '五官'
+#     @property
+#     def 是表情(self) -> bool: return self._值 == '表情'
+#     @property
+#     def 是头发(self) -> bool: return self._值 == '头发'
+#     @property
+#     def 是皮肤(self) -> bool: return self._值 == '皮肤'
+#     @property
+#     def 是衣服(self) -> bool: return self._值 == '衣服'
+
 class XiaoerAddonMaterialPresetsTemplateInformation(XiaoerAddonPresetsTemplateInformation):
 
     def 材质代码分类(self):
@@ -31,6 +46,10 @@ class XiaoerAddonMaterialPresetsTemplateInformation(XiaoerAddonPresetsTemplateIn
         default='',
         update=更新材质,
     )
+    # @property
+    # def 判断分类(self):
+    #     return 材质分类判断器(self.材质分类)
+
     更新分类: bpy.props.StringProperty(
         name="更新分类",
         default='',
@@ -64,8 +83,8 @@ class XiaoerAddonMaterialPresetsTemplateInformation(XiaoerAddonPresetsTemplateIn
         default=False,
     )
 
-    基础贴图: bpy.props.StringProperty(
-        name="基础贴图",
+    基础贴图: bpy.props.PointerProperty(
+        type=bpy.types.Image
     )
     完成匹配基础贴图: bpy.props.BoolProperty(
         name="完成匹配基础贴图",

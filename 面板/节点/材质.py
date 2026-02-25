@@ -1,6 +1,5 @@
 import bpy
-from typing import cast
-from ...指针 import XiaoerObject, XiaoerMaterial, XiaoerShaderNodeTree
+from ...指针 import *
 
 class MaterialNodeTreePanel(bpy.types.Panel):
     bl_idname = 'NODE_PT_import_xiaoer_material_nodetree_1'
@@ -11,12 +10,14 @@ class MaterialNodeTreePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点树 = cast(XiaoerShaderNodeTree, context.space_data.edit_tree)  # type:ignore
-        return 节点树 and 节点树.type == 'SHADER' and 节点树.小二预设节点树.使用插件 and not 节点树.name in bpy.data.node_groups
+        节点树: 小二着色节点树
+        节点树 = context.space_data.edit_tree  # type:ignore
+        return 节点树 and 节点树.判断类型.节点树.是着色节点树 and 节点树.小二预设节点树.使用插件 and 节点树.is_embedded_data  # 材质节点树不可重命名
 
     def draw(self, context):
         布局 = self.layout
-        节点树 = cast(XiaoerShaderNodeTree, context.space_data.edit_tree)  # type:ignore
+        节点树: 小二着色节点树
+        节点树 = context.space_data.edit_tree  # type:ignore
         属性 = 节点树.小二预设节点树
 
         列 = 布局.column()
@@ -36,13 +37,14 @@ class TemplateMaterialNodeTreePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点树 = cast(XiaoerShaderNodeTree, context.space_data.edit_tree)  # type:ignore
-        return 节点树 and 节点树.type == 'SHADER' and 节点树.小二预设模板.使用插件 and not 节点树.name in bpy.data.node_groups
+        节点树: 小二着色节点树
+        节点树 = context.space_data.edit_tree  # type:ignore
+        return 节点树 and 节点树.判断类型.节点树.是着色节点树 and 节点树.小二预设模板.使用插件 and 节点树.is_embedded_data  # 材质节点树不可重命名
 
     def draw(self, context):
         布局 = self.layout
-        模型 = cast(XiaoerObject, context.active_object)
-        材质 = cast(XiaoerMaterial, context.material)
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
+        材质 = context.material  # type:小二材质|bpy.types.Material
         属性 = 材质.小二预设模板
 
         列 = 布局.column()

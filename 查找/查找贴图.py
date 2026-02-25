@@ -1,10 +1,10 @@
-import os, bpy
+import os, bpy  # noqa: F401
 from ..通用.改名 import 模型名称处理
 from .深度检索 import 深度检索
-from ..偏好.偏好设置 import XiaoerAddonPreferences
-from ..指针 import XiaoerObject
+from ..偏好.偏好设置 import 小二偏好
+from ..指针 import *
 
-def 查找贴图(self:bpy.types.Operator, 偏好:XiaoerAddonPreferences, 模型:XiaoerObject, 游戏):
+def 查找贴图(self:bpy.types.Operator, 偏好:小二偏好, 模型:小二物体, 游戏):
 
     if not 偏好.贴图目录 or not os.path.exists(偏好.贴图目录):
         return None, None

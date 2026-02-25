@@ -43,7 +43,6 @@ class SetImagePathOperator(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         # 获取偏好设置对象
         偏好 = 获取偏好()
-
         # 将选择的路径保存到目标属性
         setattr(偏好, self.属性, self.filepath)  # type:ignore
         return {'FINISHED'}

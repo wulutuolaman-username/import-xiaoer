@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import bpy
+from ..几何.更新几何 import 更新描边开关
 from .预设 import XiaoerAddonPresetsInformation
 from .模板 import XiaoerAddonPresetsTemplateInformation
 
@@ -16,30 +17,11 @@ class XiaoerAddonNodeTree(bpy.types.PropertyGroup):
     """ 存储单个节点组 """
     节点组: bpy.props.PointerProperty(type=bpy.types.NodeTree)
 
-class XiaoerAddonModelPresets(XiaoerAddonPresetsInformation):
-
-    预设材质: bpy.props.CollectionProperty(
-        type=XiaoerAddonMaterial
-    )
-    显示预设材质: bpy.props.BoolProperty(
-        name="显示预设材质",
-        default=False,
-    )
-
-    预设贴图: bpy.props.CollectionProperty(
-        type=XiaoerAddonImage
-    )
-    显示预设贴图: bpy.props.BoolProperty(
-        name="显示预设贴图",
-        default=False,
-    )
-
-    预设节点组: bpy.props.CollectionProperty(
-        type=XiaoerAddonNodeTree
-    )
-    显示预设节点组: bpy.props.BoolProperty(
-        name="显示预设节点组",
-        default=False,
+class XiaoerAddonModelPresetsInformation(XiaoerAddonPresetsInformation):
+    描边开关: bpy.props.BoolProperty(  # 完成模板文件的节点组导入
+        name="描边开关",
+        default=True,
+        update=更新描边开关,
     )
 
 class XiaoerAddonModelPresetsTemplateInformation(XiaoerAddonPresetsTemplateInformation):

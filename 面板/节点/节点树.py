@@ -1,6 +1,5 @@
 import bpy
-from typing import cast
-from ...指针 import XiaoerShaderNodeTree, XiaoerGeometryNodeTree, XiaoerCompositorNodeTree
+from ...指针 import *
 
 class NodeGroupPanel(bpy.types.Panel):
     bl_idname = 'NODE_PT_import_xiaoer_nodegroup_1'
@@ -11,12 +10,14 @@ class NodeGroupPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
-        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY', "COMPOSITING"] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
+        节点树 = context.space_data.edit_tree  # type:ignore
+        节点树: 小二着色节点树 | 小二几何节点树 | 小二合成节点树
+        return 节点树 and 节点树.小二预设模板.使用插件 and not 节点树.is_embedded_data  # 材质节点树不可重命名，节点组可以重命名
 
     def draw(self, context):
         布局 = self.layout
-        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
+        节点树 = context.space_data.edit_tree  # type:ignore
+        节点树: 小二着色节点树 | 小二几何节点树 | 小二合成节点树
         属性 = 节点树.小二预设节点树
 
         列 = 布局.column()
@@ -36,12 +37,14 @@ class TemplateNodeGroupPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
-        return 节点树 and 节点树.type in ['SHADER', 'GEOMETRY', "COMPOSITING"] and 节点树.小二预设模板.使用插件 and 节点树.name in bpy.data.node_groups
+        节点树 = context.space_data.edit_tree  # type:ignore
+        节点树: 小二着色节点树 | 小二几何节点树 | 小二合成节点树
+        return 节点树 and 节点树.小二预设模板.使用插件 and not 节点树.is_embedded_data  # 材质节点树不可重命名，节点组可以重命名
 
     def draw(self, context):
         布局 = self.layout
-        节点树 = cast(XiaoerShaderNodeTree|XiaoerGeometryNodeTree|XiaoerCompositorNodeTree, context.space_data.edit_tree)  # type:ignore
+        节点树 = context.space_data.edit_tree  # type:ignore
+        节点树: 小二着色节点树 | 小二几何节点树 | 小二合成节点树
         属性 = 节点树.小二预设模板
 
         列 = 布局.column()

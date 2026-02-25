@@ -1,11 +1,11 @@
-import bpy
+import bpy  # noqa: F401
 from ...通用.信息 import 报告信息
 from ...着色.节点.透明.透明节点 import 获取透明节点
 from ...着色.节点.透明.混合节点 import 获取混合节点
 from ...着色.节点.透明.区域节点 import 获取区域节点
-from ...指针 import XiaoerMaterial
+from ...指针 import *
 
-def 混合透明(self:bpy.types.Operator|None, 材质:XiaoerMaterial, 图像节点, 贴图节点, 材质节点组, 材质输出节点):
+def 混合透明(self:bpy.types.Operator|None, 材质:小二材质, 图像节点, 贴图节点, 材质节点组, 材质输出节点):
     透明节点 = 获取透明节点(材质, '小二插件：透明节点')
     混合节点 = 获取混合节点(材质, '小二插件：混合节点')
     区域节点 = 获取区域节点(材质, '小二插件：通过alpha混合透明')

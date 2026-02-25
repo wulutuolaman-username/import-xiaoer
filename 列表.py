@@ -1,6 +1,9 @@
 import bpy
-from .图标 import 加载图标
-图标预览 = 加载图标()
+from .图标 import *
+# 图标预览 = 加载图标()
+
+# # 1.2.0明确导出列表
+# __all__ = ['GameTemplateItem', 'GAME_UL_TemplateList', '游戏列表添加']
 
 class GameTemplateItem(bpy.types.PropertyGroup):  # 必须在偏好前定义
     """存储单个游戏模板数据"""
@@ -19,8 +22,7 @@ class GAME_UL_TemplateList(bpy.types.UIList):
             行.alignment = 'LEFT'
 
             # 显示图标
-            icon_id = 图标预览[item.名称].icon_id
-            行.label(text=item.名称, icon_value=icon_id)
+            行.label(text=item.名称, icon_value=图标预览[item.名称])  # type: ignore
 
 def 游戏列表添加(游戏):
     from .偏好.获取偏好 import 获取偏好

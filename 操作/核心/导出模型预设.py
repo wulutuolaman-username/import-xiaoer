@@ -4,6 +4,7 @@ from bpy_extras.io_utils import ExportHelper
 from ...核心.导出模型预设 import 透透小二
 from ...通用.改名 import 模型名称处理
 from ...偏好.获取偏好 import 获取偏好
+from ...指针 import *
 
 class XiaoerAddonExportMatPresets(bpy.types.Operator, ExportHelper):
     """ 选择一个模型导出预设 """
@@ -21,7 +22,8 @@ class XiaoerAddonExportMatPresets(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(self, context):
-        return context.object is not None and context.object.type == 'MESH' and context.mode == 'OBJECT' and len(context.selected_objects) == 1  # 1.1.0只支持一个模型
+        物体 = context.active_object  # type:小二物体|bpy.types.Object
+        return 物体 and 物体.判断类型.物体.是网格 and context.mode == 'OBJECT' and len(context.selected_objects) == 1  # 1.1.0只支持一个模型
 
     # 动态设置默认路径和文件名
     def invoke(self, context, event):
@@ -58,7 +60,7 @@ class XiaoerAddonExportMatPresets(bpy.types.Operator, ExportHelper):
             self.report({'WARNING'}, f"无写入权限: {保存信息}")
             return {'CANCELLED'}
 
-        模型 = context.object
+        模型 = context.active_object  # type:小二物体|bpy.types.Object
         try:
             透透小二(self, 模型, 保存路径)  # type:ignore
         except Exception as e:

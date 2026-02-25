@@ -1,15 +1,15 @@
 # coding: utf-8
 
-import bpy
-from ..指针 import XiaoerObject
+import bpy  # noqa: F401
+from ..指针 import *
 
 # 绑定头骨
-def 矩阵绑定(self:bpy.types.Operator, 模型, 定位:XiaoerObject):
+def 矩阵绑定(self:bpy.types.Operator, 模型, 定位:小二物体):
     if not 定位.parent:
         # 代码来源：峰峰居士
-        for 修改器 in 模型.modifiers:
-            if 修改器.type == 'ARMATURE':
-                骨架 = 修改器.object
+        for 修改器 in 模型.modifiers:  # type:小二对象
+            if 修改器.判断类型.修改器.是骨架修改器:
+                骨架 = 修改器.object  # type:ignore
                 if 骨架:
                     定位.parent = 骨架
                     定位.parent_type = 'BONE'

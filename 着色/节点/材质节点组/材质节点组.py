@@ -1,26 +1,27 @@
-import bpy
-from ....属性.属性 import 小二预设模板属性
-from ....指针 import XiaoerMaterial, XiaoerNode
+import bpy  # noqa: F401
+from ....属性.属性 import *
+from ....指针 import *
 
 名称 = "小二插件：材质节点组"
 
-def 搜索材质节点组(材质:XiaoerMaterial) -> XiaoerNode:
+def 搜索材质节点组(材质:小二材质) -> 小二节点:
     材质节点组 = 材质.node_tree.nodes.get(名称, None)
     return 材质节点组
 
-def 设置材质节点组(self:bpy.types.Operator, 材质:XiaoerMaterial, 节点组, 材质节点组):
+def 设置材质节点组(self:bpy.types.Operator, 材质:小二材质, 节点组, 材质节点组):
     材质节点组.node_tree = 节点组  # 应用材质节点组
     材质节点组.location = (-200, 1500)  # 定位材质节点组
     材质节点组.name = 名称
     self.report({"INFO"}, f'材质Material["{材质.name}"]输入节点组["{节点组.name}"]')
 
-def 获取材质节点组(self:bpy.types.Operator, 游戏, 节点组列表, 材质:XiaoerMaterial, 小二材质类型) -> XiaoerNode:
+def 获取材质节点组(self:bpy.types.Operator, 游戏, 节点组列表, 材质:小二材质, 小二材质类型) -> 小二节点:
+    节点树 = 材质.node_tree # type:小二着色节点树|bpy.types.ShaderNodeTree
     材质节点组 = 搜索材质节点组(材质)
     if not 材质节点组:
-        材质节点组 = 材质.node_tree.nodes.new(type='ShaderNodeGroup')  # 新建节点组
+        材质节点组 = 节点树.新建节点.群组
     if not 材质节点组.node_tree or 材质.小二预设模板.材质分类 != 材质.小二预设模板.更新分类:
-        for 节点组 in 节点组列表:  # 设置材质节点组
-            if 节点组.type == 'SHADER' and (  # 搜索材质节点组
+        for 节点组 in 节点组列表: # type:小二着色节点树  # 设置材质节点组
+            if 节点组.判断类型.节点树.是着色节点树 and (  # 搜索材质节点组
                     节点组.name == f"{游戏}{材质.小二预设模板.材质分类}" or
                     (小二材质类型 in 节点组.name and "小二" in 节点组.name)
             ):
