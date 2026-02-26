@@ -5,8 +5,17 @@ from ..操作.模块.卸载模块 import *
 from ..面板.刷新 import *
 from ..指针 import *
 
-def 安装模块():
+# 编码 = 'gbk'
+编码 = 'utf-8'
+# 编码 = 'big5'  # 港澳台编码
 
+# 1.2.1设置系统环境变量，统一utf-8
+env = os.environ.copy()
+env['PYTHONIOENCODING'] = 'utf-8'
+env['PYTHONUTF8'] = '1'
+
+def 安装模块():
+    # print('编码', 编码)
     清理残留()
     # # 1.2.0设置环境变量
     # os.environ["PYTHONNOUSERSITE"] = "1"
@@ -14,17 +23,19 @@ def 安装模块():
     起始 = time.perf_counter()
     # 1.1.0修复numpy
     try:
+        # TODO:通过检测aud间接检测numpy 如果numpy版本过高，尝试从aud分析所需的numpy版本
+        import aud
         import numpy
         if not numpy.__file__:
             print("numpy路径无效，正在重新安装")
             安装numpy()
-        当前版本 = tuple(map(int, numpy.__version__.split(".")[:2]))
+        # 当前版本 = tuple(map(int, numpy.__version__.split(".")[:2]))
         print(f"当前 numpy 版本: {numpy.__version__}")
-        if 当前版本 > (1, 25):
-            print("numpy版本过高，可能导致 aud 不兼容，开始降级 ...")
-            安装numpy()
-            print(f"当前 numpy 版本: {numpy.__version__}")
-    except ImportError:
+        # if 当前版本 > (1, 25):
+        #     print("numpy版本过高，可能导致 aud 不兼容，开始降级 ...")
+        #     安装numpy()
+        #     print(f"当前 numpy 版本: {numpy.__version__}")
+    except:
         try:
             安装numpy()
             try:
@@ -81,10 +92,12 @@ def 安装numpy(版本="1.25.2"):
              "-i", "https://pypi.tuna.tsinghua.edu.cn/simple",  # 指定清华镜像
              "--trusted-host", "pypi.tuna.tsinghua.edu.cn",
              ],
-             encoding='gbk',  # 明确使用GBK解码中文系统的CMD输出
+             # encoding='gbk',  # 明确使用GBK解码中文系统的CMD输出
+             encoding=编码,
              text=True,
              check=True,
              capture_output=True,
+             env=env,  # ← 加这行
     )
     重载模块("numpy")
 
@@ -99,125 +112,140 @@ def 安装单个模块(self, 模块):
     pip已完成安装 = threading.Event()  # 用 Event 通知 Timer 停止
     print()
     def pip线程():
-        # 增加 --progress-bar on 强制 pip 输出进度
-        cmd = [sys.executable, "-m", "pip", "download", 安装名称[模块] + "==" + 安装版本[模块]] + [
-                "-d", 下载目录,
+
+        try:
+            # 增加 --progress-bar on 强制 pip 输出进度
+            cmd = [sys.executable, "-m", "pip", "download", 安装名称[模块] + "==" + 安装版本[模块]] + [
+                    "-d", 下载目录,
+                    "--no-deps",  # 不下载依赖
+                    "--no-cache-dir",  # 防止旧 wheel
+                    "--progress-bar", "on",
+                    "-i", "https://pypi.tuna.tsinghua.edu.cn/simple",  # 指定清华镜像
+                    "--trusted-host", "pypi.tuna.tsinghua.edu.cn",
+                  ]
+            # 卸载模块(self, 模块)
+            安装状态[模块] = "正在下载"
+            过程 = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                # encoding='gbk',
+                encoding=编码,
+                env=env,  # ← 加这行
+            )
+
+            状态 = None
+            while True:
+                # import datetime
+                # print(datetime.datetime.now())
+                输出 = 过程.stdout.readline()
+                if not 输出:  # 进程意外结束，stdout关闭
+                    if 过程.poll() is not None:
+                        break
+                    continue
+                print(repr(输出))  # 调试用，确认后可删
+                # if not 输出 and 过程.poll() is not None:
+                #     break
+
+                if "Downloading" in 输出:
+                    状态 = "下载"
+                    读取下载目标(窗口, 输出)  # 先解析总大小
+                if "Successfully downloaded" in 输出:
+                    pip已完成下载.set()
+                    break
+                # if "Installing collected packages" in 输出:
+                #     状态 = "安装"
+                #     pip已完成下载.set()
+                #
+                # if "Successfully installed" in 输出:
+                #     pip已完成安装.set()
+                #     重载模块(导入名称[模块])
+                #     print(f"{导入名称[模块]} 安装成功 (版本: {获取版本(模块)})")
+                #     安装状态[模块] = "安装成功"
+                #     break
+
+                if 状态 == "下载":
+                    # 注册下载进度Timer（避免重复注册）
+                    if not bpy.app.timers.is_registered(读取下载进度):
+                        bpy.app.timers.register(读取下载进度, first_interval=0.1)
+
+                # if 状态 == "安装":
+                #     # 切换到安装进度Timer
+                #     if not bpy.app.timers.is_registered(读取安装进度):
+                #         bpy.app.timers.register(读取安装进度, first_interval=0.2)
+
+                # 读取下载目标(窗口, 输出)
+            过程.wait()
+            pip已完成下载.set()
+
+            # 解析 whl 文件计算解压大小
+            窗口.小二预设模板.总大小 = 安装大小[模块] = 0
+            最新文件 = glob.glob(os.path.join(下载目录, "*.whl"))[0]  # pip 清理临时目录 需要重新在下载目录里查找
+            with zipfile.ZipFile(最新文件, 'r') as z:
+                for info in z.infolist():
+                    安装大小[模块] += info.file_size / (1024 * 1024)
+                窗口.小二预设模板.总大小 = 安装大小[模块]
+                print(最新文件)
+                print(模块, '解析安装后大小', 安装大小[模块], 'MB')
+
+            cmd = [
+                sys.executable, "-m", "pip", "install",
+                "--force-reinstall", # pillow is already installed with the same version as the provided wheel. Use --force-reinstall to force an installation of the wheel
+                最新文件,
                 "--no-deps",  # 不下载依赖
+                "--no-user",  # 禁止装到 Roaming
                 "--no-cache-dir",  # 防止旧 wheel
-                "--progress-bar", "on",
-                "-i", "https://pypi.tuna.tsinghua.edu.cn/simple",  # 指定清华镜像
-                "--trusted-host", "pypi.tuna.tsinghua.edu.cn",
-              ]
-        # 卸载模块(self, 模块)
-        安装状态[模块] = "正在下载"
-        过程 = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding='gbk',
-        )
+            ] + 安装指令[模块]
+            安装状态[模块] = "正在安装"
+            过程 = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                # encoding='gbk',
+                encoding=编码,
+                env=env,  # ← 加这行
+            )
 
-        状态 = None
-        while True:
-            # import datetime
-            # print(datetime.datetime.now())
-            输出 = 过程.stdout.readline()
-            if not 输出:  # 进程意外结束，stdout关闭
-                if 过程.poll() is not None:
+            状态 = None
+            while True:
+                # import datetime
+                # print(datetime.datetime.now())
+                输出 = 过程.stdout.readline()
+                if not 输出:  # 进程意外结束，stdout关闭
+                    if 过程.poll() is not None:
+                        break
+                    continue
+                print(repr(输出))  # 调试用，确认后可删
+                # if not 输出 and 过程.poll() is not None:
+                #     break
+
+                if "Installing collected packages" in 输出:
+                    状态 = "安装"
+
+                if "Successfully installed" in 输出:
+                    pip已完成安装.set()
                     break
-                continue
-            print(repr(输出))  # 调试用，确认后可删
-            # if not 输出 and 过程.poll() is not None:
-            #     break
 
-            if "Downloading" in 输出:
-                状态 = "下载"
-                读取下载目标(窗口, 输出)  # 先解析总大小
-            if "Successfully downloaded" in 输出:
-                pip已完成下载.set()
-                break
-            # if "Installing collected packages" in 输出:
-            #     状态 = "安装"
-            #     pip已完成下载.set()
-            #
-            # if "Successfully installed" in 输出:
-            #     pip已完成安装.set()
-            #     重载模块(导入名称[模块])
-            #     print(f"{导入名称[模块]} 安装成功 (版本: {获取版本(模块)})")
-            #     安装状态[模块] = "安装成功"
-            #     break
+                if 状态 == "安装":
+                    # 切换到安装进度Timer
+                    if not bpy.app.timers.is_registered(读取安装进度):
+                        bpy.app.timers.register(读取安装进度, first_interval=0.01)
 
-            if 状态 == "下载":
-                # 注册下载进度Timer（避免重复注册）
-                if not bpy.app.timers.is_registered(读取下载进度):
-                    bpy.app.timers.register(读取下载进度, first_interval=0.1)
+            过程.wait()
+            pip已完成安装.set()
+            重载模块(导入名称[模块])
+            print(f"{导入名称[模块]} 安装成功 (版本: {获取版本(模块)})")
+            安装状态[模块] = "安装成功"
+            pip已完成.set()  # 通知 Timer 可以停止了
 
-            # if 状态 == "安装":
-            #     # 切换到安装进度Timer
-            #     if not bpy.app.timers.is_registered(读取安装进度):
-            #         bpy.app.timers.register(读取安装进度, first_interval=0.2)
-
-            # 读取下载目标(窗口, 输出)
-        过程.wait()
-        pip已完成下载.set()
-
-        # 解析 whl 文件计算解压大小
-        窗口.小二预设模板.总大小 = 安装大小[模块] = 0
-        最新文件 = glob.glob(os.path.join(下载目录, "*.whl"))[0]  # pip 清理临时目录 需要重新在下载目录里查找
-        with zipfile.ZipFile(最新文件, 'r') as z:
-            for info in z.infolist():
-                安装大小[模块] += info.file_size / (1024 * 1024)
-            窗口.小二预设模板.总大小 = 安装大小[模块]
-            print(最新文件)
-            print(模块, '解析安装后大小', 安装大小[模块], 'MB')
-
-        cmd = [
-            sys.executable, "-m", "pip", "install",
-            最新文件,
-            "--no-user",  # 禁止装到 Roaming
-            "--no-cache-dir",  # 防止旧 wheel
-        ] + 安装指令[模块]
-        安装状态[模块] = "正在安装"
-        过程 = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding='gbk',
-        )
-
-        状态 = None
-        while True:
-            # import datetime
-            # print(datetime.datetime.now())
-            输出 = 过程.stdout.readline()
-            if not 输出:  # 进程意外结束，stdout关闭
-                if 过程.poll() is not None:
-                    break
-                continue
-            print(repr(输出))  # 调试用，确认后可删
-            # if not 输出 and 过程.poll() is not None:
-            #     break
-
-            if "Installing collected packages" in 输出:
-                状态 = "安装"
-
-            if "Successfully installed" in 输出:
-                pip已完成安装.set()
-                break
-
-            if 状态 == "安装":
-                # 切换到安装进度Timer
-                if not bpy.app.timers.is_registered(读取安装进度):
-                    bpy.app.timers.register(读取安装进度, first_interval=0.01)
-
-        过程.wait()
-        pip已完成安装.set()
-        # 重载模块(导入名称[模块])
-        print(f"{导入名称[模块]} 安装成功 (版本: {获取版本(模块)})")
-        安装状态[模块] = "安装成功"
-        pip已完成.set()  # 通知 Timer 可以停止了
+        except Exception as e:
+            输出错误(None, e, f"{导入名称[模块]} 安装失败")
+            安装状态[模块] = "安装失败"
+            pip已完成.set()      # 必须set，否则主线程join永远阻塞
+            pip已完成下载.set()  # 同上，防止Timer一直跑
+            pip已完成安装.set()
 
         if os.path.exists(下载目录):
             shutil.rmtree(下载目录, ignore_errors=True)
@@ -298,18 +326,14 @@ def 安装单个模块(self, 模块):
     try:
         print(f"{导入名称[模块]}已安装{获取版本(模块)}")
         return
-    except:
-        pass
-    try:
-        pip线程实例 = threading.Thread(target=pip线程, daemon=True)
-        pip线程实例.start()
-        # bpy.app.timers.register(读取下载进度, first_interval=0.1)
-        # 主线程等待安装完成（阻塞当前操作，但 Timer 在后台跑）
-        pip线程实例.join()
-
     except Exception as e:
-        输出错误(None, e, f"{导入名称[模块]} 安装失败")
-        安装状态[模块] = "安装失败"
+        输出错误(None, e, f'未找到{模块}安装信息')
+
+    pip线程实例 = threading.Thread(target=pip线程, daemon=True)
+    pip线程实例.start()
+    # bpy.app.timers.register(读取下载进度, first_interval=0.1)
+    # 主线程等待安装完成（阻塞当前操作，但 Timer 在后台跑）
+    pip线程实例.join()
 
     终止 = time.perf_counter()
     print(f'检测{导入名称[模块]}模块耗时 {终止-起始:.6f}秒')

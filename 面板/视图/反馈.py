@@ -39,6 +39,10 @@ class InformationFeedbackUI(bpy.types.Panel):
                     框.label(text=f"{安装状态[模块][-2:]}进度 {窗口.小二预设模板.已下载:.2f} / {窗口.小二预设模板.总大小:.2f}MB")
                 elif 安装状态[模块] == "安装失败":
                     行.label(text=f"{模块}模块安装失败", icon='ERROR')
+                    行 = 布局.row()
+                    # 行.alignment = 'CENTER'
+                    行.alert = True
+                    行.label(text=f"切换系统控制台查看详情", icon='CONSOLE')
                 else:
                     行.label(text=f"{模块}模块未安装", icon='ERROR')
         for 模块 in 模块列表:

@@ -43,10 +43,18 @@
 }
 
 def 获取版本(模块):
-    # import importlib
-    # return importlib.import_module(导入名称[模块]).__version__
+
+    if 模块 != 'opencv':
+        import importlib
+        importlib.import_module(导入名称[模块])
+
     import importlib.metadata
-    return importlib.metadata.version(安装名称[模块])
+    版本 = importlib.metadata.version(安装名称[模块])  # PIL已安装None
+    if 版本:
+        # print(模块, '找到版本', 版本)
+        return 版本
+    # 裸 raise 必须在 except 块内才能重新抛出异常
+    raise importlib.metadata.PackageNotFoundError(安装名称[模块])
     # import importlib.metadata
     # try:
     #     # 先尝试读pip包版本（完整版本号）
@@ -55,7 +63,7 @@ def 获取版本(模块):
     #     # 回退到模块自身的__version__
     #     return importlib.import_module(导入名称[模块]).__version__
 
-# opencv读取安装进度时 触发面板获取插件版本 疯狂打印sys.path
+# opencv读取安装进度时 触发面板获取插件版本 importlib.import_module(导入名称[模块])疯狂打印sys.path
 # ['C:\\Users\\wulutuolaman\\AppData\\Roaming\\Blender Foundation\\Blender\\3.6\\scripts\\startup',
 #  'C:\\Program Files\\Blender Foundation\\Blender 3.6\\3.6\\scripts\\startup',
 #  'C:\\Program Files\\Blender Foundation\\Blender 3.6\\3.6\\scripts\\modules',
